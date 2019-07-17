@@ -1,6 +1,8 @@
 Package hamming implelements multi-index minimal hammign distance algorithm
 See "Fast and compact Hamming distance index" (Simon Gog, Rossano Venturini) http://pages.di.unipi.it/rossano/wp-content/uploads/sites/7/2016/05/sigir16b.pdf
 
+This code uses github.com/steakknife/hamming for fast hamming distance calculations
+
 The add/remove/dup API  is not reentrant.
 APIs add/remove modify the hash tables
 APIs dup/distance only read the hash tables
