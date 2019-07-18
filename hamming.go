@@ -32,6 +32,7 @@ import (
 type Statistics struct {
 	pendingDistance         uint64 // intentionally not atomic
 	distance                uint64
+	distanceContains        uint64
 	distanceCandidate       uint64
 	distanceBetterCandidate uint64
 	distanceNoIndex         uint64
@@ -461,6 +462,7 @@ func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
 
 	// Do I have this hash already?
 	if h.Contains(hash) {
+		statistics.distanceContains++
 		return Sibling{distance: 0, s: hash}
 	}
 	sibling := Sibling{
