@@ -472,7 +472,7 @@ func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
 	// Choose a sibling with the minimum hamming distance from the 'hash'
 	blockMask := (uint64(1) << uint64(h.blockSize)) - 1
 	hashOrig := hash.Dup()
-	fmt.Printf("%v\n", h.multiIndexTables)
+	//fmt.Printf("%v\n", h.multiIndexTables)
 	for b := uint8(0); b < uint8(h.blocks); b++ {
 		blockValue := hash.and(blockMask)
 		hash.rsh(uint64(h.blockSize))
