@@ -315,6 +315,9 @@ func addMultiindex(multiIndexTables map[uint8]indexTable, blockIndex uint8, bloc
 	hashes[insertIndex] = hashIndex
 	indexTable[blockValue] = hashes
 	multiIndexTables[blockIndex] = indexTable
+	// fmt.Printf("blockIndex %d, blockValue %d, hashIndex %d\n", blockIndex, blockValue, hashIndex)
+	// fmt.Printf("hashes[insertIndex]=%v,indexTable[blockValue]=%v,multiIndexTables[blockIndex]=%v\n",
+	// 	hashes[insertIndex], indexTable[blockValue], multiIndexTables[blockIndex])
 }
 
 func removeMultiindex(multiIndexTables map[uint8]indexTable, blockIndex uint8, blockValue uint16, hashIndex uint32, preallocate int) {
@@ -352,9 +355,9 @@ func (h *H) add(hash FuzzyHash) bool {
 
 	// I maintain a map for quick removing a hash
 	h.hashesLookup[key] = uint32(hashIndex)
-	hash = hash.Dup()
 
 	// Add hashIndex to the sorted arrays in multiIndexTables
+	hash = hash.Dup()
 	blockMask := (uint64(1) << uint64(h.blockSize)) - 1
 	preallocationSize := len(h.hashesLookup) / (1 << uint(h.blockSize)) // Roughly half of what I need
 	for b := uint8(0); b < uint8(h.blocks); b++ {
@@ -362,6 +365,7 @@ func (h *H) add(hash FuzzyHash) bool {
 		hash.rsh(uint64(h.blockSize))
 		addMultiindex(h.multiIndexTables, b, uint16(blockValue), hashIndex, preallocationSize)
 	}
+	// fmt.Printf("h.hashes=%v\n", h.hashes)
 
 	// The last bock can be larger than h.blockSize
 	// I want to add all Combinations(h.lastBlockSize, h.blockSize)
@@ -473,8 +477,10 @@ func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
 	// find all hashes  containing exactly the same hash
 	// Choose a sibling with the minimum hamming distance from the 'hash'
 	blockMask := (uint64(1) << uint64(h.blockSize)) - 1
-	hashOrig := hash.Dup()
+	hashOrig := hash
+	hash = hash.Dup()
 	//fmt.Printf("%v\n", h.multiIndexTables)
+	//fmt.Printf("disatnce.h.hashes=%v\n", h.hashes)
 	for b := uint8(0); b < uint8(h.blocks); b++ {
 		blockValue := hash.and(blockMask)
 		hash.rsh(uint64(h.blockSize))
@@ -492,8 +498,8 @@ func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
 		for _, candidateIndex := range candidates {
 			candidateHash := h.hashes[candidateIndex]
 			hammingDistance := hamming.Uint64s(hashOrig, candidateHash)
-			fmt.Printf("Sample %s Candidate %s distance %d blockV=%x hash=%s\n",
-				hashOrig.ToString(), candidateHash.ToString(), hammingDistance, blockValue, hash.ToString())
+			//fmt.Printf("Sample %s Candidate %s distance %d blockV=%x hash=%s\n",
+			//	hashOrig.ToString(), candidateHash.ToString(), hammingDistance, blockValue, hash.ToString())
 			if hammingDistance < sibling.distance {
 				statistics.distanceBetterCandidate++
 				sibling = Sibling{
