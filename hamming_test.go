@@ -608,8 +608,8 @@ func benchmarkClosestSiblingInSet(setSize int, b *testing.B) {
 	b.ResetTimer()
 	var sibling Sibling
 	for i := 0; i < b.N; i++ {
-		s0 := dataSet[xs.Uint64()%uint64(len(dataSet))]
-		sibling = closestSibling(s0, dataSet)
+		s := dataSet[xs.Uint64()%uint64(len(dataSet))]
+		sibling = closestSibling(s, dataSet)
 	}
 	b.Logf("Sibling distance %d hash %s", sibling.distance, sibling.s.ToString())
 }
@@ -624,6 +624,10 @@ func BenchmarkClosestSibling100K(b *testing.B) {
 
 func BenchmarkClosestSibling1M(b *testing.B) {
 	benchmarkClosestSiblingInSet(1000*1000, b)
+}
+
+func BenchmarkClosestSibling10M(b *testing.B) {
+	benchmarkClosestSiblingInSet(10*1000*1000, b)
 }
 
 func BenchmarkHammingDistance(b *testing.B) {
