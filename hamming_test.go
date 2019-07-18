@@ -448,19 +448,25 @@ func (x *XorShift1024Star) Init() {
 	x.p = 0
 }
 
-func benchmarkRealDataSet(count int, b *testing.B) {
+func benchmarkRealDataSet(count int, hashCollision bool, b *testing.B) {
 	hashesCount := len(realDataTest.hashes)
 	xs := &XorShift1024Star{}
 	xs.Init()
 	statistics = &Statistics{}
+	var fh FuzzyHash
+	for i := 0; i < len(fh); i++ { // generate a random hash
+		fh[i] = xs.Uint64()
+	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for k := 0; k < count; k++ {
-			// Pick a hash from the set
-			testHashIndex := xs.Uint64() % uint64(hashesCount)
-			fh := realDataTest.hashes[testHashIndex]
-			// Force different value for the first 64 bits
-			fh[0] |= xs.Uint64()
+			if hashCollision {
+				// generate a hash inside of 32 bits from an existig hash
+				// Pick a hash from the set, random mask of 32 bits
+				testHashIndex := xs.Uint64() % uint64(hashesCount)
+				fh = realDataTest.hashes[testHashIndex]
+				fh[0] &= ((uint64(1) << 32) - 1) | xs.Uint64()
+			}
 			realDataTest.ShortestDistance(fh)
 		}
 	}
@@ -471,21 +477,28 @@ func BenchmarkRealDataSet(b *testing.B) {
 	if realDataTest == nil {
 		return
 	}
-	benchmarkRealDataSet(1, b)
+	benchmarkRealDataSet(1, false, b)
 }
 
 func BenchmarkRealDataSet100(b *testing.B) {
 	if realDataTest == nil {
 		return
 	}
-	benchmarkRealDataSet(100, b)
+	benchmarkRealDataSet(100, false, b)
 }
 
 func BenchmarkRealDataSet1000(b *testing.B) {
 	if realDataTest == nil {
 		return
 	}
-	benchmarkRealDataSet(1000, b)
+	benchmarkRealDataSet(1000, false, b)
+}
+
+func BenchmarkRealDataSetCollision1000(b *testing.B) {
+	if realDataTest == nil {
+		return
+	}
+	benchmarkRealDataSet(1000, true, b)
 }
 
 func benchmarkHammingAdd(h *H, count int, b *testing.B) {
