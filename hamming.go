@@ -480,6 +480,28 @@ func (h *H) Contains(hash FuzzyHash) bool {
 	return ok
 }
 
+// ShortestDistanceBruteForce returns the closest sibling in the DB for
+// the specfied hash
+// This API is not reentrant and should not be called simultaneously
+// with add/remove
+func (h *H) ShortestDistanceBruteForce(hash FuzzyHash) Sibling {
+	sibling := Sibling{
+		distance: h.hashSize,
+	}
+	statistics.distanceCandidates += uint64(len(h.hashes))
+	for _, candidateHash := range h.hashes {
+		hammingDistance := distanceUint64s(hash, candidateHash)
+		if hammingDistance < sibling.distance {
+			statistics.distanceBetterCandidate++
+			sibling = Sibling{
+				s:        candidateHash,
+				distance: hammingDistance,
+			}
+		}
+	}
+	return sibling
+}
+
 // ShortestDistance returns the closest sibling in the DB for
 // the specfied hash
 // This API is not reentrant and should not be called simultaneously

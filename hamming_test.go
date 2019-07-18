@@ -548,14 +548,18 @@ func benchmarkUniformDataSet(setSize int, count int, b *testing.B) {
 			fh := h.hashes[testHashIndex]
 			// Modify between 0 to 63 bits
 			fh[0] &= xs.Uint64()
-			h.ShortestDistance(fh)
+			h.ShortestDistanceBruteForce(fh)
 		}
 	}
 	b.Logf("\n%s\n", sprintf.SprintfStructure(*statistics, 2, "", nil))
 }
 
-func BenchmarkUniformDataSet(b *testing.B) {
+func BenchmarkUniformDataSet300K1(b *testing.B) {
 	benchmarkUniformDataSet(300*1000, 1, b)
+}
+
+func BenchmarkUniformDataSet300K1K(b *testing.B) {
+	benchmarkUniformDataSet(300*1000, 1000, b)
 }
 
 func benchmarkHammingAdd(h *H, count int, b *testing.B) {
