@@ -159,7 +159,7 @@ type H struct {
 
 	// multi index tables storing index tables by bit substring position in the
 	// hash; I support at most 256 blocks
-	multiIndexTables map[uint8]indexTable
+	multiIndexTables []indexTable
 
 	// A map of all entries in the array 'hashes'. I need the map for quick removal of hashes
 	// Number of hashes I can keep wont excees 2^32-1. For 32 bytes hashes 2^32 is 140GB
@@ -198,7 +198,7 @@ func New(hashSize int, maxDistance int) (*H, error) {
 		lastBlockSize: lastBlockSize,
 		blocks:        blocks,
 
-		multiIndexTables: make(map[uint8]indexTable),
+		multiIndexTables: make([]indexTable, 256),
 		hashesLookup:     make(map[string]uint32),
 	}
 
@@ -297,11 +297,11 @@ func closestSibling(s []uint64, hashes []FuzzyHash) Sibling {
 }
 
 // Recipe from https://play.golang.org/p/k53JzyvnE0
-func addMultiindex(multiIndexTables map[uint8]indexTable, blockIndex uint8, blockValue uint16, hashIndex uint32, preallocate int) {
-	if _, ok := multiIndexTables[blockIndex]; !ok {
+func addMultiindex(multiIndexTables []indexTable, blockIndex uint8, blockValue uint16, hashIndex uint32, preallocate int) {
+	if multiIndexTables[blockIndex] == nil {
 		multiIndexTables[blockIndex] = make(map[uint16]([]uint32))
 	}
-	indexTable, _ := multiIndexTables[blockIndex]
+	indexTable := multiIndexTables[blockIndex]
 	if _, ok := indexTable[blockValue]; !ok {
 		indexTable[blockValue] = make([]uint32, preallocate)
 	}
@@ -321,12 +321,12 @@ func addMultiindex(multiIndexTables map[uint8]indexTable, blockIndex uint8, bloc
 	// 	hashes[insertIndex], indexTable[blockValue], multiIndexTables[blockIndex])
 }
 
-func removeMultiindex(multiIndexTables map[uint8]indexTable, blockIndex uint8, blockValue uint16, hashIndex uint32, preallocate int) {
-	if _, ok := multiIndexTables[blockIndex]; !ok {
+func removeMultiindex(multiIndexTables []indexTable, blockIndex uint8, blockValue uint16, hashIndex uint32, preallocate int) {
+	if multiIndexTables[blockIndex] == nil {
 		statistics.removeIndexNotFound1++
 		return
 	}
-	indexTable, _ := multiIndexTables[blockIndex]
+	indexTable := multiIndexTables[blockIndex]
 	if _, ok := indexTable[blockValue]; !ok {
 		statistics.removeIndexNotFound2++
 		return
@@ -441,7 +441,7 @@ func (h *H) RemoveBulk(hashes []FuzzyHash) bool {
 // This API is not reentrant and should not be called simultaneously
 // with add/remove/dup/distance
 func (h *H) RemoveAll() {
-	h.multiIndexTables = make(map[uint8]indexTable)
+	h.multiIndexTables = make([]indexTable, 256)
 	h.hashesLookup = make(map[string]uint32)
 }
 
@@ -488,8 +488,8 @@ func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
 	for b := uint8(0); b < uint8(h.blocks); b++ {
 		blockValue := hash.and(blockMask)
 		hash.rsh(uint64(h.blockSize))
-		indexTable, ok := h.multiIndexTables[b]
-		if !ok {
+		indexTable := h.multiIndexTables[b]
+		if indexTable == nil {
 			statistics.distanceNoIndex++
 			continue
 		}
