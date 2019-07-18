@@ -448,23 +448,35 @@ func (x *XorShift1024Star) Init() {
 	x.p = 0
 }
 
-func benchmarkRealDataSet(count int, hashCollision bool, b *testing.B) {
+const (
+	hashCollisionNone = iota
+	hashCollision64
+	hashCollisionExactMatch
+)
+
+func benchmarkRealDataSet(count int, hashCollision int, b *testing.B) {
 	hashesCount := len(realDataTest.hashes)
 	xs := &XorShift1024Star{}
 	xs.Init()
 	statistics = &Statistics{}
 	var fh FuzzyHash = make([]uint64, 4)
-	for i := 0; i < len(fh); i++ { // generate a random hash
-		fh[i] = xs.Uint64()
+	if hashCollision == hashCollisionNone {
+		for i := 0; i < len(fh); i++ { // generate a random hash
+			fh[i] = xs.Uint64()
+		}
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for k := 0; k < count; k++ {
-			if hashCollision {
+			if hashCollision == hashCollision64 {
 				// Generate a hash inside of at most 64 bits from an existig hash
 				testHashIndex := xs.Uint64() % uint64(hashesCount)
 				fh = realDataTest.hashes[testHashIndex]
 				fh[0] &= xs.Uint64()
+			} else if hashCollision == hashCollisionExactMatch {
+				// Generate a hash inside of at most 64 bits from an existig hash
+				testHashIndex := xs.Uint64() % uint64(hashesCount)
+				fh = realDataTest.hashes[testHashIndex]
 			}
 			realDataTest.ShortestDistance(fh)
 		}
@@ -476,35 +488,42 @@ func BenchmarkRealDataSet(b *testing.B) {
 	if realDataTest == nil {
 		return
 	}
-	benchmarkRealDataSet(1, false, b)
+	benchmarkRealDataSet(1, hashCollisionNone, b)
 }
 
 func BenchmarkRealDataSet100(b *testing.B) {
 	if realDataTest == nil {
 		return
 	}
-	benchmarkRealDataSet(100, false, b)
+	benchmarkRealDataSet(100, hashCollisionNone, b)
 }
 
 func BenchmarkRealDataSet1000(b *testing.B) {
 	if realDataTest == nil {
 		return
 	}
-	benchmarkRealDataSet(1000, false, b)
+	benchmarkRealDataSet(1000, hashCollisionNone, b)
 }
 
 func BenchmarkRealDataSetCollision(b *testing.B) {
 	if realDataTest == nil {
 		return
 	}
-	benchmarkRealDataSet(1, true, b)
+	benchmarkRealDataSet(1, hashCollision64, b)
 }
 
 func BenchmarkRealDataSetCollision1000(b *testing.B) {
 	if realDataTest == nil {
 		return
 	}
-	benchmarkRealDataSet(1000, true, b)
+	benchmarkRealDataSet(1000, hashCollision64, b)
+}
+
+func BenchmarkRealDataSetExactMatch1000(b *testing.B) {
+	if realDataTest == nil {
+		return
+	}
+	benchmarkRealDataSet(1000, hashCollisionExactMatch, b)
 }
 
 func benchmarkHammingAdd(h *H, count int, b *testing.B) {
