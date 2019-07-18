@@ -572,30 +572,37 @@ func BenchmarkFuzzyHashToString(b *testing.B) {
 	}
 }
 
+func randomFuzzyHash(bits int, xs *XorShift1024Star) FuzzyHash {
+	uint64s := bits / 64
+	fh := make([]uint64, uint64s)
+	for i := 0; i < len(fh); i++ {
+		fh[i] = xs.Uint64()
+	}
+	return fh
+}
+
 func BenchmarkClosestSibling(b *testing.B) {
-	s, _ := HashStringToFuzzyHash(allFsHash)
-	s1, _ := HashStringToFuzzyHash("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1")
-	s2, _ := HashStringToFuzzyHash("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF3")
-	s3, _ := HashStringToFuzzyHash(allFsHash)
-	s4, _ := HashStringToFuzzyHash("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7")
+	xs := &XorShift1024Star{}
+	xs.Init()
+
+	s := randomFuzzyHash(256, xs)
+	s1 := randomFuzzyHash(256, xs)
+	s2 := randomFuzzyHash(256, xs)
+	s3 := randomFuzzyHash(256, xs)
+	s4 := randomFuzzyHash(256, xs)
 	b.ResetTimer()
-	var sibling Sibling
 	for i := 0; i < b.N; i++ {
-		sibling = closestSibling(s, []FuzzyHash{s1, s2, s3, s4, s1, s2, s3, s4})
-	}
-	if sibling.distance != 0 {
-		b.Errorf("Found wrong sibling %v", sibling)
-	}
-	if !sibling.s.IsEqual(s3) {
-		b.Errorf("Found wrong sibling %v", sibling)
+		_ = closestSibling(s, []FuzzyHash{s1, s2, s3, s4, s1, s2, s3, s4})
 	}
 }
 
 func benchmarkClosestSiblingInSet(setSize int, b *testing.B) {
-	s0, _ := HashStringToFuzzyHash(allFsHash)
+	xs := &XorShift1024Star{}
+	xs.Init()
+	s0 := randomFuzzyHash(256, xs)
 	var dataSet []FuzzyHash
 	for i := 0; i < setSize; i++ {
-		s := s0.Dup() // Different address to force data cache miss
+		s := randomFuzzyHash(256, xs) // Different address to force data cache miss
 		dataSet = append(dataSet, s)
 	}
 	b.ResetTimer()
