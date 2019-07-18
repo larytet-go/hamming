@@ -30,14 +30,14 @@ import (
 // Statistics keeps all global debug counters and performance
 // monitors
 type Statistics struct {
-	pendingDistance          uint64 // intentionally not atomic
-	distance                 uint64
-	distanceContains         uint64
-	distanceCandidate        uint64
-	distanceBetterCandidate  uint64
-	distanceNoIndex          uint64
-	distanceNoCandidates     uint64
-	distanceCandidateChecked uint64
+	pendingDistance         uint64 // intentionally not atomic
+	distance                uint64
+	distanceContains        uint64
+	distanceCandidate       uint64
+	distanceBetterCandidate uint64
+	distanceNoIndex         uint64
+	distanceNoCandidates    uint64
+	distanceAlreadyChecked  uint64
 
 	addIndex        uint64
 	addIndexExists  uint64
@@ -501,7 +501,7 @@ func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
 			candidateHash := h.hashes[candidateIndex]
 			candidateHashKey := candidateHash.toKey()
 			if _, ok := checkedCandidates[candidateHashKey]; ok {
-				statistics.distanceCandidateChecked++
+				statistics.distanceAlreadyChecked++
 				continue
 			}
 			checkedCandidates[candidateHashKey] = true
