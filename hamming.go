@@ -492,7 +492,8 @@ func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
 		for _, candidateIndex := range candidates {
 			candidateHash := h.hashes[candidateIndex]
 			hammingDistance := hamming.Uint64s(hashOrig, candidateHash)
-			// fmt.Printf("Sample %s Candidate %s distance %d\n", hashOrig.ToString(), candidateHash.ToString(), hammingDistance)
+			fmt.Printf("Sample %s Candidate %s distance %d blockV=%x hash=%s\n",
+				hashOrig.ToString(), candidateHash.ToString(), hammingDistance, blockValue, hash.ToString())
 			if hammingDistance < sibling.distance {
 				statistics.distanceBetterCandidate++
 				sibling = Sibling{
