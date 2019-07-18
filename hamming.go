@@ -463,7 +463,7 @@ func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
 	// Do I have this hash already?
 	if h.Contains(hash) {
 		statistics.distanceContains++
-		return Sibling{distance: 0, s: hash}
+		// return Sibling{distance: 0, s: hash}
 	}
 	sibling := Sibling{
 		distance: h.hashSize,
@@ -513,8 +513,13 @@ func (h *H) Dup() *H {
 	newH, _ := New(h.hashSize, h.maxDistance)
 	newH.hashes = make([]FuzzyHash, len(h.hashes))
 	copy(newH.hashes, h.hashes)
-	for key, hashes := range h.multiIndexTables {
-		newH.multiIndexTables[key] = hashes
+	for blockIndex, indexTable := range h.multiIndexTables {
+		tmpIndexTable := make(map[uint16]([]uint32))
+		newH.multiIndexTables[blockIndex] = tmpIndexTable
+		for blockValue, hashes := range indexTable {
+			tmpIndexTable[blockValue] = make([]uint32, len(hashes))
+			copy(tmpIndexTable[blockValue], indexTable[blockValue])
+		}
 	}
 	for key, value := range h.hashesLookup {
 		newH.hashesLookup[key] = value

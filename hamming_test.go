@@ -355,7 +355,7 @@ func TestHammingDup(t *testing.T) {
 	h.add(fh)
 	sibling := h.ShortestDistance(fh)
 	if sibling.distance != 0 || !sibling.s.IsEqual(fh) {
-		t.Errorf("Failed to find sibling: got distance %d, hash %s", sibling.distance, sibling.s.ToString())
+		t.Errorf("Failed to find sibling: got distance %d, hash %s %v", sibling.distance, sibling.s.ToString(), h.multiIndexTables)
 	}
 	h = h.Dup()
 	sibling = h.ShortestDistance(fh)
