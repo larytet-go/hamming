@@ -540,6 +540,7 @@ func benchmarkUniformDataSet(setSize int, count int, b *testing.B) {
 	b.ResetTimer()
 
 	hashesCount := len(h.hashes)
+	statistics = &Statistics{}
 	for i := 0; i < b.N; i++ {
 		for k := 0; k < count; k++ {
 			// Pick a random hash from the data set
@@ -548,6 +549,7 @@ func benchmarkUniformDataSet(setSize int, count int, b *testing.B) {
 			h.ShortestDistance(fh)
 		}
 	}
+	b.Logf("\n%s\n", sprintf.SprintfStructure(*statistics, 2, "", nil))
 }
 
 func BenchmarkUniformDataSet(b *testing.B) {
