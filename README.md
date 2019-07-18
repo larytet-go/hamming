@@ -1,5 +1,5 @@
 Package hamming implelements multi-index minimal hammign distance algorithm
-See "Fast and compact Hamming distance index" (Simon Gog, Rossano Venturini) http://pages.di.unipi.it/rossano/wp-content/uploads/sites/7/2016/05/sigir16b.pdf
+See ["Fast and compact Hamming distance index" (Simon Gog, Rossano Venturini)](http://pages.di.unipi.it/rossano/wp-content/uploads/sites/7/2016/05/sigir16b.pdf)
 
 I have built a POC which finds ~3M/s shortest hamming distances between a sample and the 300K set. This is per core. Most of the performance improvements came from three things.
 * I use 7 bits blocks (surprisingly) and the first search phase is very fast.
