@@ -1,6 +1,6 @@
 package hamming
 
-// Try go test -v -bench .
+// Try go test -bench=. -benchmem -memprofile memprofile.out -cpuprofile profile.out -dataset hashes.0.clean.csv  -distance 35
 
 import (
 	"bufio"
@@ -474,6 +474,13 @@ func BenchmarkRealDataSet(b *testing.B) {
 }
 
 func BenchmarkRealDataSet100(b *testing.B) {
+	if realDataTest == nil {
+		return
+	}
+	benchmarkRealDataSet(100, b)
+}
+
+func BenchmarkRealDataSet1000(b *testing.B) {
 	if realDataTest == nil {
 		return
 	}
