@@ -482,7 +482,9 @@ func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
 	hash = hash.Dup()
 	//fmt.Printf("%v\n", h.multiIndexTables)
 	//fmt.Printf("disatnce.h.hashes=%v\n", h.hashes)
-	checkedCandidates := make(map[string](bool))
+
+	// Keeping map of already checked hashes slows the code by factor two
+	// var checkedCandidates map[string](bool)
 	for b := uint8(0); b < uint8(h.blocks); b++ {
 		blockValue := hash.and(blockMask)
 		hash.rsh(uint64(h.blockSize))
@@ -499,14 +501,8 @@ func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
 		statistics.distanceCandidate += uint64(len(candidates))
 		for _, candidateIndex := range candidates {
 			candidateHash := h.hashes[candidateIndex]
-			candidateHashKey := candidateHash.toKey()
-			if _, ok := checkedCandidates[candidateHashKey]; ok {
-				statistics.distanceAlreadyChecked++
-				continue
-			}
-			checkedCandidates[candidateHashKey] = true
 			hammingDistance := hamming.Uint64s(hashOrig, candidateHash)
-			//fmt.Printf("Sample %s Candidate %s distance %d blockV=%x hash=%s\n",
+			// fmt.Printf("Sample %s Candidate %s distance %d blockV=%x hash=%s\n",
 			//	hashOrig.ToString(), candidateHash.ToString(), hammingDistance, blockValue, hash.ToString())
 			if hammingDistance < sibling.distance {
 				statistics.distanceBetterCandidate++
