@@ -464,6 +464,7 @@ func benchmarkRealDataSet(count int, b *testing.B) {
 			realDataTest.ShortestDistance(fh)
 		}
 	}
+	b.Logf("Average candidates %d\n", statistics.distanceNoCandidates/statistics.distance)
 }
 
 func BenchmarkRealDataSet(b *testing.B) {
