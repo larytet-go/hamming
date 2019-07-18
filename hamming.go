@@ -18,6 +18,7 @@ package hamming
 import (
 	"bytes"
 	"fmt"
+	"math/bits"
 	"reflect"
 	"sort"
 	"unsafe"
@@ -278,32 +279,18 @@ func HashStringToFuzzyHash(s string) (FuzzyHash, error) {
 	return FuzzyHash, nil
 }
 
-const (
-	m1q uint64 = 0x5555555555555555
-	m2q        = 0x3333333333333333
-	m4q        = 0x0f0f0f0f0f0f0f0f
-	hq         = 0x0101010101010101
-)
-
-// Copy from github.com/steakknife/hamming"
+// See https://stackoverflow.com/questions/19105791/is-there-a-big-bitcount/32695740#32695740
+// Copy from github.com/steakknife/hamming
+// See also https://stackoverflow.com/questions/34116205/count-number-of-set-bits-in-a-long-number
+// https://gist.github.com/mikeb01/3524824
 func distanceUint64s(b0, b1 []uint64) int {
 	d := 0
 	for i := 0; i < len(b0); i++ {
 		x := b0[i] ^ b1[i]
 
-		// put count of each 2 bits into those 2 bits
-		x -= (x >> 1) & m1q
-
-		// put count of each 4 bits into those 4 bits
-		x = (x & m2q) + ((x >> 2) & m2q)
-
-		// put count of each 8 bits into those 8 bits
-		x = (x + (x >> 4)) & m4q
-
-		// returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
-		d += int((x * hq) >> 56)
+		d += bits.OnesCount64(x)
 	}
-	return d
+	return int(d)
 }
 
 func closestSibling(s []uint64, hashes []FuzzyHash) Sibling {
