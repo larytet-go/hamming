@@ -1,6 +1,6 @@
 package hamming
 
-// Try go test -bench=. -benchmem -memprofile memprofile.out -cpuprofile profile.out -dataset hashes.0.clean.csv  -distance 35
+// Try go test -v -bench=. -benchmem -memprofile memprofile.out -cpuprofile profile.out -dataset hashes.0.clean.csv  -distance 35
 // go tool pprof profile.out
 
 import (
@@ -406,6 +406,9 @@ func TestLoadRealData(t *testing.T) {
 		}
 		realDataTest.add(fh)
 		lastHash = fh
+		if !realDataTest.Contains(lastHash) {
+			t.Errorf("Failed to add hash %s", lastHash.ToString())
+		}
 	}
 	hashesCount := len(realDataTest.hashes)
 	t.Logf("Loaded %d hashes from the file '%s'", hashesCount, dataSetFilename)
