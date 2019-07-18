@@ -31,7 +31,7 @@ type Statistics struct {
 	pendingDistance         uint64 // intentionally not atomic
 	distance                uint64
 	distanceContains        uint64
-	distanceCandidate       uint64
+	distanceCandidates      uint64
 	distanceBetterCandidate uint64
 	distanceNoIndex         uint64
 	distanceNoCandidates    uint64
@@ -524,7 +524,7 @@ func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
 			statistics.distanceNoCandidates++
 			continue
 		}
-		statistics.distanceCandidate += uint64(len(candidates))
+		statistics.distanceCandidates += uint64(len(candidates))
 		for _, candidateIndex := range candidates {
 			candidateHash := h.hashes[candidateIndex]
 			hammingDistance := distanceUint64s(hashOrig, candidateHash)
