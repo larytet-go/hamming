@@ -605,6 +605,7 @@ func benchmarkClosestSiblingInSet(setSize int, b *testing.B) {
 		s := randomFuzzyHash(256, xs) // Different address to force data cache miss
 		dataSet = append(dataSet, s)
 	}
+	b.Logf("Find shortest distance in %d entries set", len(dataSet))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_ = closestSibling(s0, dataSet)
