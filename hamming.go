@@ -34,6 +34,8 @@ type Statistics struct {
 	distance                uint64
 	distanceCandidate       uint64
 	distanceBetterCandidate uint64
+	distanceNoIndex         uint64
+	distanceNoCandidates    uint64
 
 	addIndex        uint64
 	addIndexExists  uint64
@@ -175,7 +177,10 @@ func New(hashSize int, maxDistance int) (*H, error) {
 		return &H{}, fmt.Errorf("hash size modulus 64 is not zero %d", hashSize)
 	}
 
-	blocks := maxDistance + 1      // If maxDsitance is 35 bits I need 36 blocks
+	blocks := maxDistance + 1 // If maxDsitance is 35 bits I need 36 blocks
+	if blocks > 255 {
+		return &H{}, fmt.Errorf("I do not support more than 255 blocks, got %d", blocks)
+	}
 	blockSize := hashSize / blocks // and block size 7.11(1) bits
 	lastBlockSize := blockSize     // 35 seven bits blocks and one 11 bits block
 
@@ -349,10 +354,10 @@ func (h *H) add(hash FuzzyHash) bool {
 	// Add hashIndex to the sorted arrays in multiIndexTables
 	blockMask := (uint64(1) << uint64(h.blockSize)) - 1
 	preallocationSize := len(h.hashesLookup) / (1 << uint(h.blockSize)) // Roughly half of what I need
-	for b := 0; b < h.blocks; b++ {
+	for b := uint8(0); b < uint8(h.blocks); b++ {
 		blockValue := hash.and(blockMask)
 		hash.rsh(uint64(h.blockSize))
-		addMultiindex(h.multiIndexTables, uint16(blockValue), hashIndex, preallocationSize)
+		addMultiindex(h.multiIndexTables, b, uint16(blockValue), hashIndex, preallocationSize)
 	}
 
 	// The last bock can be larger than h.blockSize
@@ -381,10 +386,10 @@ func (h *H) remove(hash FuzzyHash) bool {
 	// Remove hashIndex from the sorted arrays in multiIndexTables
 	blockMask := (uint64(1) << uint64(h.blockSize)) - 1
 	preallocationSize := len(h.hashesLookup) / (1 << uint(h.blockSize)) // Roughly half of what I need
-	for b := 0; b < h.blocks; b++ {
+	for b := uint8(0); b < uint8(h.blocks); b++ {
 		blockValue := hash.and(blockMask)
 		hash.rsh(uint64(h.blockSize))
-		removeMultiindex(h.multiIndexTables, uint16(blockValue), hashIndex, preallocationSize)
+		removeMultiindex(h.multiIndexTables, b, uint16(blockValue), hashIndex, preallocationSize)
 	}
 
 	return true
@@ -428,7 +433,7 @@ func (h *H) RemoveBulk(hashes []FuzzyHash) bool {
 // This API is not reentrant and should not be called simultaneously
 // with add/remove/dup/distance
 func (h *H) RemoveAll() {
-	h.multiIndexTables = make(map[uint16]([]uint32))
+	h.multiIndexTables = make(map[uint8]indexTable)
 	h.hashesLookup = make(map[string]uint32)
 }
 
@@ -465,10 +470,19 @@ func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
 	// Choose a sibling with the minimum hamming distance from the 'hash'
 	blockMask := (uint64(1) << uint64(h.blockSize)) - 1
 	hashOrig := hash.Dup()
-	for b := 0; b < h.blocks; b++ {
+	for b := uint8(0); b < uint8(h.blocks); b++ {
 		blockValue := hash.and(blockMask)
 		hash.rsh(uint64(h.blockSize))
-		candidates := h.multiIndexTables[uint16(blockValue)]
+		indexTable, ok := h.multiIndexTables[b]
+		if !ok {
+			statistics.distanceNoIndex++
+			continue
+		}
+		candidates, ok := indexTable[uint16(blockValue)]
+		if !ok {
+			statistics.distanceNoCandidates++
+			continue
+		}
 		for _, candidateIndex := range candidates {
 			statistics.distanceCandidate++
 			candidateHash := h.hashes[candidateIndex]
