@@ -562,6 +562,10 @@ func BenchmarkUniformDataSet300K1K(b *testing.B) {
 	benchmarkUniformDataSet(300*1000, 1000, b)
 }
 
+func BenchmarkUniformDataSet1M1K(b *testing.B) {
+	benchmarkUniformDataSet(1000*1000, 1000, b)
+}
+
 func benchmarkHammingAdd(h *H, count int, b *testing.B) {
 	for i := 0; i < count; i++ {
 		fh, _ := HashStringToFuzzyHash(allFsHash) // This line dominates add()
