@@ -42,6 +42,8 @@ type Statistics struct {
 	removeIndex          uint64
 	removeIndexNotFound  uint64
 	removeIndexNotFound1 uint64
+	removeIndexNotFound2 uint64
+	removeIndexNotFound3 uint64
 }
 
 var statistics Statistics
@@ -309,18 +311,24 @@ func addMultiindex(multiIndexTables map[uint8]indexTable, blockIndex uint8, bloc
 }
 
 func removeMultiindex(multiIndexTables map[uint8]indexTable, blockIndex uint8, blockValue uint16, hashIndex uint32, preallocate int) {
-	if _, ok := multiIndexTables[key]; !ok {
-		multiIndexTables[key] = make([]uint32, preallocate)
-	}
-	hashes, _ := multiIndexTables[key]
-	removeIndex := sort.Search(len(hashes), func(i int) bool { return hashes[i] >= value })
-	if (len(hashes) <= removeIndex) || (hashes[removeIndex] == value) {
+	if _, ok := multiIndexTables[blockIndex]; !ok {
 		statistics.removeIndexNotFound1++
+		return
+	}
+	indexTable, _ := multiIndexTables[blockIndex]
+	if _, ok := indexTable[blockValue]; !ok {
+		statistics.removeIndexNotFound2++
+		return
+	}
+	hashes := indexTable[blockValue]
+	removeIndex := sort.Search(len(hashes), func(i int) bool { return hashes[i] >= hashIndex })
+	if (len(hashes) <= removeIndex) || (hashes[removeIndex] == hashIndex) {
+		statistics.removeIndexNotFound3++
 		return
 	}
 	copy(hashes[removeIndex:], hashes[removeIndex+1:])
 	hashes = hashes[:len(hashes)-1]
-	multiIndexTables[key] = hashes
+	multiIndexTables[blockIndex] = indexTable
 }
 
 func (h *H) add(hash FuzzyHash) bool {
