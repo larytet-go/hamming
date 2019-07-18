@@ -470,18 +470,11 @@ func BenchmarkRealDataSet(b *testing.B) {
 	benchmarkRealDataSet(1, b)
 }
 
-func BenchmarkRealDataSet100K(b *testing.B) {
+func BenchmarkRealDataSet100(b *testing.B) {
 	if realDataTest == nil {
 		return
 	}
-	benchmarkRealDataSet(100*1000, b)
-}
-
-func BenchmarkRealDataSet1M(b *testing.B) {
-	if realDataTest == nil {
-		return
-	}
-	benchmarkRealDataSet(1000*1000, b)
+	benchmarkRealDataSet(100, b)
 }
 
 func benchmarkHammingAdd(h *H, count int, b *testing.B) {
