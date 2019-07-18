@@ -138,6 +138,11 @@ func (fh FuzzyHash) Dup() FuzzyHash {
 	return tmp
 }
 
+// index table keeping sorted list of (indexes of) hashes
+// key in the table is a value of block (bit substring)
+// block is up to 16 bits long
+type indexTable map[uint16]([]uint32)
+
 // H structure keeps hash tables for fast hamming distance calculation
 // I am running lock free. Only one thread handles lookup/add/remove
 // operations
@@ -146,8 +151,9 @@ type H struct {
 	// An array of all hashes
 	hashes []FuzzyHash
 
-	// multi index tables which store sorted list of (indexes of) hashes
-	multiIndexTables map[uint16]([]uint32)
+	// multi index tables storing index tables by bit substring position in the
+	// hash; I support at most 256 blocks
+	multiIndexTables map[uint8]indexTable
 
 	// A map of all entries in the array 'hashes'. I need the map for quick removal of hashes
 	// Number of hashes I can keep wont excees 2^32-1. For 32 bytes hashes 2^32 is 140GB
@@ -183,7 +189,7 @@ func New(hashSize int, maxDistance int) (*H, error) {
 		lastBlockSize: lastBlockSize,
 		blocks:        blocks,
 
-		multiIndexTables: make(map[uint16]([]uint32)),
+		multiIndexTables: make(map[uint8]indexTable),
 		hashesLookup:     make(map[string]uint32),
 	}
 
@@ -282,23 +288,27 @@ func closestSibling(s []uint64, hashes []FuzzyHash) Sibling {
 }
 
 // Recipe from https://play.golang.org/p/k53JzyvnE0
-func addMultiindex(multiIndexTables map[uint16]([]uint32), key uint16, value uint32, preallocate int) {
-	if _, ok := multiIndexTables[key]; !ok {
-		multiIndexTables[key] = make([]uint32, preallocate)
+func addMultiindex(multiIndexTables map[uint8]indexTable, blockIndex uint8, blockValue uint16, hashIndex uint32, preallocate int) {
+	if _, ok := multiIndexTables[blockIndex]; !ok {
+		multiIndexTables[blockIndex] = make(map[uint16]([]uint32))
 	}
-	hashes, _ := multiIndexTables[key]
-	insertIndex := sort.Search(len(hashes), func(i int) bool { return hashes[i] >= value })
-	if (len(hashes) > insertIndex) && (hashes[insertIndex] == value) {
+	indexTable, _ := multiIndexTables[blockIndex]
+	if _, ok := indexTable[blockValue]; !ok {
+		indexTable[blockValue] = make([]uint32, preallocate)
+	}
+	hashes := indexTable[blockValue]
+	insertIndex := sort.Search(len(hashes), func(i int) bool { return hashes[i] >= hashIndex })
+	if (len(hashes) > insertIndex) && (hashes[insertIndex] == hashIndex) {
 		statistics.addIndexExists1++
 		return
 	}
 	hashes = append(hashes, 0)
 	copy(hashes[insertIndex+1:], hashes[insertIndex:])
-	hashes[insertIndex] = value
-	multiIndexTables[key] = hashes
+	hashes[insertIndex] = hashIndex
+	multiIndexTables[blockIndex] = indexTable
 }
 
-func removeMultiindex(multiIndexTables map[uint16]([]uint32), key uint16, value uint32, preallocate int) {
+func removeMultiindex(multiIndexTables map[uint8]indexTable, blockIndex uint8, blockValue uint16, hashIndex uint32, preallocate int) {
 	if _, ok := multiIndexTables[key]; !ok {
 		multiIndexTables[key] = make([]uint32, preallocate)
 	}
