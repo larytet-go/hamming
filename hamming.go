@@ -21,8 +21,6 @@ import (
 	"reflect"
 	"sort"
 	"unsafe"
-
-	"github.com/steakknife/hamming"
 	// For Combinations: go get -u -t gonum.org/v1/gonum/...
 	// "gonum.org/v1/gonum/stat/combin"
 )
@@ -280,12 +278,38 @@ func HashStringToFuzzyHash(s string) (FuzzyHash, error) {
 	return FuzzyHash, nil
 }
 
+const (
+	m1q uint64 = 0x5555555555555555
+	m2q        = 0x3333333333333333
+	m4q        = 0x0f0f0f0f0f0f0f0f
+	hq         = 0x0101010101010101
+)
+
+// Copy from github.com/steakknife/hamming"
+func distanceUint64s(b0, b1 []uint64) int {
+	d := 0
+	for _, x := range b0 {
+		// put count of each 2 bits into those 2 bits
+		x -= (x >> 1) & m1q
+
+		// put count of each 4 bits into those 4 bits
+		x = (x & m2q) + ((x >> 2) & m2q)
+
+		// put count of each 8 bits into those 8 bits
+		x = (x + (x >> 4)) & m4q
+
+		// returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
+		d += int((x * hq) >> 56)
+	}
+	return d
+}
+
 func closestSibling(s []uint64, hashes []FuzzyHash) Sibling {
 	sibling := Sibling{
 		distance: 64 * len(s),
 	}
 	for _, hash := range hashes {
-		hammingDistance := hamming.Uint64s(s, hash)
+		hammingDistance := distanceUint64s(s, hash)
 		if hammingDistance < sibling.distance {
 			sibling = Sibling{
 				s:        hash,
@@ -501,7 +525,7 @@ func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
 		statistics.distanceCandidate += uint64(len(candidates))
 		for _, candidateIndex := range candidates {
 			candidateHash := h.hashes[candidateIndex]
-			hammingDistance := hamming.Uint64s(hashOrig, candidateHash)
+			hammingDistance := distanceUint64s(hashOrig, candidateHash)
 			// fmt.Printf("Sample %s Candidate %s distance %d blockV=%x hash=%s\n",
 			//	hashOrig.ToString(), candidateHash.ToString(), hammingDistance, blockValue, hash.ToString())
 			if hammingDistance < sibling.distance {
