@@ -529,6 +529,31 @@ func BenchmarkRealDataSetExactMatch1000(b *testing.B) {
 	benchmarkRealDataSet(1, hashCollisionExactMatch, b)
 }
 
+func benchmarkUniformDataSet(setSize int, count int, b *testing.B) {
+	h, _ := New(256, 35)
+	xs := &XorShift1024Star{}
+	xs.Init()
+	for i := 0; i < setSize; i++ {
+		s := randomFuzzyHash(256, xs)
+		h.add(s)
+	}
+	b.ResetTimer()
+
+	hashesCount := len(h.hashes)
+	for i := 0; i < b.N; i++ {
+		for k := 0; k < count; k++ {
+			// Pick a random hash from the data set
+			testHashIndex := xs.Uint64() % uint64(hashesCount)
+			fh := h.hashes[testHashIndex]
+			h.ShortestDistance(fh)
+		}
+	}
+}
+
+func BenchmarkUniformDataSet(b *testing.B) {
+	benchmarkUniformDataSet(300*1000, 1, b)
+}
+
 func benchmarkHammingAdd(h *H, count int, b *testing.B) {
 	for i := 0; i < count; i++ {
 		fh, _ := HashStringToFuzzyHash(allFsHash) // This line dominates add()
