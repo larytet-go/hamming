@@ -461,11 +461,10 @@ func benchmarkRealDataSet(count int, hashCollision bool, b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for k := 0; k < count; k++ {
 			if hashCollision {
-				// generate a hash inside of 32 bits from an existig hash
-				// Pick a hash from the set, random mask of 32 bits
+				// Generate a hash inside of at most 64 bits from an existig hash
 				testHashIndex := xs.Uint64() % uint64(hashesCount)
 				fh = realDataTest.hashes[testHashIndex]
-				fh[0] &= ((uint64(1) << 32) - 1) | xs.Uint64()
+				fh[0] &= xs.Uint64()
 			}
 			realDataTest.ShortestDistance(fh)
 		}
@@ -492,6 +491,13 @@ func BenchmarkRealDataSet1000(b *testing.B) {
 		return
 	}
 	benchmarkRealDataSet(1000, false, b)
+}
+
+func BenchmarkRealDataSetCollision(b *testing.B) {
+	if realDataTest == nil {
+		return
+	}
+	benchmarkRealDataSet(1, true, b)
 }
 
 func BenchmarkRealDataSetCollision1000(b *testing.B) {
