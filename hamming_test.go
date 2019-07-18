@@ -607,9 +607,11 @@ func benchmarkClosestSiblingInSet(setSize int, b *testing.B) {
 	}
 	b.Logf("Find shortest distance in %d entries set", len(dataSet))
 	b.ResetTimer()
+	var sibling Sibling
 	for i := 0; i < b.N; i++ {
-		_ = closestSibling(s0, dataSet)
+		sibling = closestSibling(s0, dataSet)
 	}
+	b.Logf("Sibling distance %d hash %s", sibling.distance, sibling.s.ToString())
 }
 
 func BenchmarkClosestSibling2K(b *testing.B) {
