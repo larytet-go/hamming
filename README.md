@@ -6,7 +6,7 @@ I have built a POC which finds ~3M/s shortest hamming distances between a sample
 * I use array of eight 64 bits words to keep hashes and can calculate a hamming distance between two 256 hashes in 20ns (50M hashes/s on a single i7 core. The code counting set bits does contain loops.
 * The code runs lock free.
 
-This code uses github.com/steakknife/hamming for fast hamming distance calculations
+This code uses [github.com/steakknife/hamming](https://github.com/steakknife/hamming) for fast hamming distance calculations
 
 The add/remove/dup API  is not reentrant.
 APIs add/remove modify the hash tables
