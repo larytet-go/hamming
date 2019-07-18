@@ -312,6 +312,7 @@ func addMultiindex(multiIndexTables map[uint8]indexTable, blockIndex uint8, bloc
 	hashes = append(hashes, 0)
 	copy(hashes[insertIndex+1:], hashes[insertIndex:])
 	hashes[insertIndex] = hashIndex
+	indexTable[blockValue] = hashes
 	multiIndexTables[blockIndex] = indexTable
 }
 
@@ -333,6 +334,7 @@ func removeMultiindex(multiIndexTables map[uint8]indexTable, blockIndex uint8, b
 	}
 	copy(hashes[removeIndex:], hashes[removeIndex+1:])
 	hashes = hashes[:len(hashes)-1]
+	indexTable[blockValue] = hashes
 	multiIndexTables[blockIndex] = indexTable
 }
 
@@ -470,6 +472,7 @@ func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
 	// Choose a sibling with the minimum hamming distance from the 'hash'
 	blockMask := (uint64(1) << uint64(h.blockSize)) - 1
 	hashOrig := hash.Dup()
+	fmt.Printf("%v\n", h.multiIndexTables)
 	for b := uint8(0); b < uint8(h.blocks); b++ {
 		blockValue := hash.and(blockMask)
 		hash.rsh(uint64(h.blockSize))
