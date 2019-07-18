@@ -8,9 +8,11 @@ I have built a POC which finds ~3M/s shortest hamming distances between a sample
 
 This code uses [github.com/steakknife/hamming](https://github.com/steakknife/hamming) for fast hamming distance calculations
 
-The add/remove/dup API  is not reentrant.
-APIs add/remove modify the hash tables
-APIs dup/distance only read the hash tables
+# API
+
+* The add/remove/dup API  is not reentrant.
+* APIs add/remove modify the hash tables.
+* APIs dup/distance only read the hash tables.
 
 Usually the applciation will duplicate the H(amming) object and switch the pointer to the instance
 
@@ -23,6 +25,7 @@ Usually the applciation will duplicate the H(amming) object and switch the point
     }
 ```
 
+# Benchmarks
 
 Benchmarks for 256 bits hashes 
 ```
