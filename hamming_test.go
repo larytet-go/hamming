@@ -484,30 +484,32 @@ func BenchmarkRealDataSet1M(b *testing.B) {
 	benchmarkRealDataSet(1000*1000, b)
 }
 
-func benchmarkHammingAdd(count int, b *testing.B) {
-	h, _ := New(256, 35)
-	fh, _ := HashStringToFuzzyHash(allFsHash)
+func benchmarkHammingAdd(h *H, count int, b *testing.B) {
 	for i := 0; i < count; i++ {
+		fh, _ := HashStringToFuzzyHash(allFsHash) // This line dominates add()
 		h.add(fh)
 	}
 	h.RemoveAll()
 }
 
 func BenchmarkHammingAdd(b *testing.B) {
+	h, _ := New(256, 35)
 	for i := 0; i < b.N; i++ {
-		benchmarkHammingAdd(1, b)
+		benchmarkHammingAdd(h, 1, b)
 	}
 }
 
 func BenchmarkHammingAdd100K(b *testing.B) {
+	h, _ := New(256, 35)
 	for i := 0; i < b.N; i++ {
-		benchmarkHammingAdd(100*1000, b)
+		benchmarkHammingAdd(h, 100*1000, b)
 	}
 }
 
 func BenchmarkHammingAdd1M(b *testing.B) {
+	h, _ := New(256, 35)
 	for i := 0; i < b.N; i++ {
-		benchmarkHammingAdd(1000*1000, b)
+		benchmarkHammingAdd(h, 1000*1000, b)
 	}
 }
 
