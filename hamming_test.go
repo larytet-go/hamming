@@ -474,7 +474,7 @@ func benchmarkRealDataSet(count int, hashCollision int, b *testing.B) {
 				fh = realDataTest.hashes[testHashIndex]
 				fh[0] &= xs.Uint64()
 			} else if hashCollision == hashCollisionExactMatch {
-				// Generate a hash inside of at most 64 bits from an existig hash
+				// Pick a random hash from the data set
 				testHashIndex := xs.Uint64() % uint64(hashesCount)
 				fh = realDataTest.hashes[testHashIndex]
 			}
@@ -523,7 +523,7 @@ func BenchmarkRealDataSetExactMatch1000(b *testing.B) {
 	if realDataTest == nil {
 		return
 	}
-	benchmarkRealDataSet(1000, hashCollisionExactMatch, b)
+	benchmarkRealDataSet(1, hashCollisionExactMatch, b)
 }
 
 func benchmarkHammingAdd(h *H, count int, b *testing.B) {
