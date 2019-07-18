@@ -546,6 +546,8 @@ func benchmarkUniformDataSet(setSize int, count int, b *testing.B) {
 			// Pick a random hash from the data set
 			testHashIndex := xs.Uint64() % uint64(hashesCount)
 			fh := h.hashes[testHashIndex]
+			// Modify between 0 to 63 bits
+			fh[0] &= xs.Uint64()
 			h.ShortestDistance(fh)
 		}
 	}
