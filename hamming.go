@@ -48,7 +48,7 @@ type Statistics struct {
 	removeIndexNotFound3 uint64
 }
 
-var statistics Statistics
+var statistics = &Statistics{}
 
 // FuzzyHash uses 64 bits words instead of bytes because I "know"
 // that number of bits in my hashes is multiply of 64

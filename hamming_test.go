@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/larytet-go/sprintf"
 	"github.com/steakknife/hamming"
 )
 
@@ -456,6 +457,7 @@ func benchmarkRealDataSet(count int, b *testing.B) {
 	hashesCount := len(realDataTest.hashes)
 	xs := &XorShift1024Star{}
 	xs.Init()
+	statistics = &Statistics{}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for k := 0; k < count; k++ {
@@ -464,7 +466,7 @@ func benchmarkRealDataSet(count int, b *testing.B) {
 			realDataTest.ShortestDistance(fh)
 		}
 	}
-	b.Logf("Average candidates %d\n", statistics.distanceCandidate/statistics.distance)
+	b.Logf("\n%s\n", sprintf.SprintfStructure(statistics, 2, "", nil))
 }
 
 func BenchmarkRealDataSet(b *testing.B) {
