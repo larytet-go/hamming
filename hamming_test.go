@@ -453,7 +453,7 @@ func benchmarkRealDataSet(count int, hashCollision bool, b *testing.B) {
 	xs := &XorShift1024Star{}
 	xs.Init()
 	statistics = &Statistics{}
-	var fh FuzzyHash
+	var fh FuzzyHash = make([]uint64, 4)
 	for i := 0; i < len(fh); i++ { // generate a random hash
 		fh[i] = xs.Uint64()
 	}
