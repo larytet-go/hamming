@@ -466,7 +466,7 @@ func benchmarkRealDataSet(count int, b *testing.B) {
 			realDataTest.ShortestDistance(fh)
 		}
 	}
-	b.Logf("\n%s\n", sprintf.SprintfStructure(statistics, 2, "", nil))
+	b.Logf("\n%s\n", sprintf.SprintfStructure(*statistics, 2, "", nil))
 }
 
 func BenchmarkRealDataSet(b *testing.B) {
