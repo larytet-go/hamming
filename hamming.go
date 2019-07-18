@@ -288,8 +288,9 @@ const (
 // Copy from github.com/steakknife/hamming"
 func distanceUint64s(b0, b1 []uint64) int {
 	d := 0
-	for i, b0i := range b0 {
-		x := b0i ^ b1[i]
+	for i := 0; i < len(b0); i++ {
+		x := b0[i] ^ b1[i]
+
 		// put count of each 2 bits into those 2 bits
 		x -= (x >> 1) & m1q
 
