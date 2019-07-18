@@ -455,8 +455,11 @@ func benchmarkRealDataSet(count int, b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for k := 0; k < count; k++ {
+			// Pick a hash from the set
 			testHashIndex := xs.Uint64() % uint64(hashesCount)
 			fh := realDataTest.hashes[testHashIndex]
+			// Force different value for the first 64 bits
+			fh[0] |= xs.Uint64()
 			realDataTest.ShortestDistance(fh)
 		}
 	}

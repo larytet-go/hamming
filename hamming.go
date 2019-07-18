@@ -468,7 +468,7 @@ func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
 	// Do I have this hash already?
 	if h.Contains(hash) {
 		statistics.distanceContains++
-		// return Sibling{distance: 0, s: hash}
+		return Sibling{distance: 0, s: hash}
 	}
 	sibling := Sibling{
 		distance: h.hashSize,
