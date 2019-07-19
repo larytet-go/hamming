@@ -165,7 +165,7 @@ type Config struct {
 	// Brute force works faster on sets of up to 10M entries
 	// and probably for any set size
 	//
-	// In the tests for the uniform data sets and 7 bits substring
+	// In the tests of the uniform data sets and 7 bits substring
 	// in the multiindex the pool of candidates contains ~30% of the
 	// data set. The search in the multinidex consumes roughly
 	// the same time as the second phase of checking of all candidates.
