@@ -197,7 +197,7 @@ var hammingAddTests = []HammingAddTest{
 
 func TestHammingAdd(t *testing.T) {
 	for testID, test := range hammingAddTests {
-		h, err := New(test.hashSize, test.maxDistance)
+		h, err := New(Config{hashSize: test.hashSize, maxDistance: test.maxDistance, useMultiindex: true})
 		if err != nil {
 			t.Errorf("Test %d failed: %v", testID, err)
 		}
@@ -326,7 +326,7 @@ var hammingDistanceTests = []HammingDistanceTest{
 
 func TestHammingDistance(t *testing.T) {
 	for testID, test := range hammingDistanceTests {
-		h, err := New(test.hashSize, test.maxDistance)
+		h, err := New(Config{hashSize: test.hashSize, maxDistance: test.maxDistance, useMultiindex: true})
 		if err != nil {
 			t.Errorf("Test %d failed: %v", testID, err)
 		}
@@ -352,7 +352,7 @@ func TestHammingDistance(t *testing.T) {
 
 func TestHammingDup(t *testing.T) {
 	fh, _ := HashStringToFuzzyHash(allFsHash)
-	h, _ := New(256, 35)
+	h, _ := New(Config{hashSize: 256, maxDistance: 35, useMultiindex: true})
 	h.add(fh)
 	sibling := h.ShortestDistance(fh)
 	if sibling.distance != 0 || !sibling.s.IsEqual(fh) {
@@ -395,7 +395,7 @@ func TestLoadRealData(t *testing.T) {
 		}
 		if realDataTest == nil {
 			hashSize := 8 * len(line) / 2 // bits
-			realDataTest, err = New(hashSize, dataSetMaximumDistance)
+			realDataTest, err = New(Config{hashSize: hashSize, maxDistance: dataSetMaximumDistance, useMultiindex: true})
 			if err != nil {
 				t.Errorf("Failed to create multi-index file '%s' %v", dataSetFilename, err)
 			}
@@ -530,7 +530,7 @@ func BenchmarkRealDataSetExactMatch1000(b *testing.B) {
 }
 
 func benchmarkUniformDataSet(setSize int, count int, b *testing.B) {
-	h, _ := New(256, 35)
+	h, _ := New(Config{hashSize: 256, maxDistance: 35, useMultiindex: true})
 	xs := &XorShift1024Star{}
 	xs.Init()
 	for i := 0; i < setSize; i++ {
@@ -548,7 +548,7 @@ func benchmarkUniformDataSet(setSize int, count int, b *testing.B) {
 			fh := h.hashes[testHashIndex]
 			// Modify between 0 to 63 bits
 			fh[0] &= xs.Uint64()
-			h.ShortestDistanceBruteForce(fh)
+			h.shortestDistanceBruteForce(fh)
 		}
 	}
 	b.Logf("\n%s\n", sprintf.SprintfStructure(*statistics, 2, "", nil))
@@ -575,21 +575,21 @@ func benchmarkHammingAdd(h *H, count int, b *testing.B) {
 }
 
 func BenchmarkHammingAdd(b *testing.B) {
-	h, _ := New(256, 35)
+	h, _ := New(Config{hashSize: 256, maxDistance: 35, useMultiindex: true})
 	for i := 0; i < b.N; i++ {
 		benchmarkHammingAdd(h, 1, b)
 	}
 }
 
 func BenchmarkHammingAdd100K(b *testing.B) {
-	h, _ := New(256, 35)
+	h, _ := New(Config{hashSize: 256, maxDistance: 35, useMultiindex: true})
 	for i := 0; i < b.N; i++ {
 		benchmarkHammingAdd(h, 100*1000, b)
 	}
 }
 
 func BenchmarkHammingAdd1M(b *testing.B) {
-	h, _ := New(256, 35)
+	h, _ := New(Config{hashSize: 256, maxDistance: 35, useMultiindex: true})
 	for i := 0; i < b.N; i++ {
 		benchmarkHammingAdd(h, 1000*1000, b)
 	}

@@ -201,7 +201,7 @@ func New(config Config) (*H, error) {
 	// This is fast
 	distance := (*H).shortestDistanceBruteForce
 	if config.useMultiindex { // Ok, if you insist
-		distance := (*H).shortestDistanceMultiindex
+		distance = (*H).shortestDistanceMultiindex
 	}
 
 	h := H{
