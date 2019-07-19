@@ -432,6 +432,10 @@ func (h *H) remove(hash FuzzyHash) bool {
 	delete(h.hashesLookup, key)
 	copy(h.hashes[hashIndex:], h.hashes[hashIndex+1:])
 
+	if !h.config.useMultiindex {
+		return true
+	}
+
 	// Remove hashIndex from the sorted arrays in multiIndexTables
 	blockMask := (uint64(1) << uint64(h.blockSize)) - 1
 	preallocationSize := len(h.hashesLookup) / (1 << uint(h.blockSize)) // Roughly half of what I need
