@@ -164,6 +164,15 @@ type Config struct {
 	// Use 'false' for faster lookup
 	// Brute force works faster on sets of up to 10M entries
 	// and probably for any set size
+	//
+	// In the tests for the uniform data sets and 7 bits substring
+	// in the multiindex the pool of candidates contains ~30% of the
+	// data set. The search in the multinidex consumes roughly
+	// the same time as the second phase of checking of all candidates.
+	// Checking the candidates works slower because of the data cache
+	// misses
+	// Single stage brute force approach which calculates all hamming
+	// distances is faster in the tests.
 	useMultiindex bool
 }
 
