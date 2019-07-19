@@ -158,8 +158,12 @@ type indexTable map[uint16]([]uint32)
 // a separate structure. Another upside is that it simpleifies testing
 // of different configurations
 type Config struct {
-	hashSize      int
-	maxDistance   int
+	hashSize    int // For example, 256 bits
+	maxDistance int // 35 bits
+
+	// Use 'false' for faster lookup
+	// Brute force works faster on sets of up to 10M entries
+	// and probably for any set size
 	useMultiindex bool
 }
 
