@@ -170,10 +170,13 @@ type H struct {
 	blocks        int // number of blocks in the hash
 	blockSize     int // size of the block
 	lastBlockSize int // size of the last block, often != blockSize
+
+	distance func(h *H, hash FuzzyHash) Sibling
 }
 
 // New creates an instance of hammer distance calculator
-func New(hashSize int, maxDistance int) (*H, error) {
+// Set useMultiindex to 'false' for best performance
+func New(hashSize int, maxDistance int, useMultiindex bool) (*H, error) {
 	if hashSize%64 != 0 {
 		return &H{}, fmt.Errorf("hash size modulus 64 is not zero %d", hashSize)
 	}
@@ -190,6 +193,12 @@ func New(hashSize int, maxDistance int) (*H, error) {
 	}
 	// lastBlockCombinations := combin.Combinations(lastBlockSize, blockSize)
 
+	// This is fast
+	distance := (*H).shortestDistanceBruteForce
+	if useMultiindex { // Ok, if you insist
+		distance := (*H).shortestDistanceMultiindex
+	}
+
 	h := H{
 		maxDistance:   maxDistance,
 		hashSize:      hashSize,
@@ -199,6 +208,7 @@ func New(hashSize int, maxDistance int) (*H, error) {
 
 		multiIndexTables: make([]indexTable, 256),
 		hashesLookup:     make(map[string]uint32),
+		distance:         distance,
 	}
 
 	return &h, nil
@@ -467,11 +477,16 @@ func (h *H) Contains(hash FuzzyHash) bool {
 	return ok
 }
 
-// ShortestDistanceBruteForce returns the closest sibling in the DB for
+// ShortestDistance returns the closest sibling in the DB for
 // the specfied hash
 // This API is not reentrant and should not be called simultaneously
 // with add/remove
-func (h *H) ShortestDistanceBruteForce(hash FuzzyHash) Sibling {
+func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
+	sibling := h.distance(h, hash)
+	return sibling
+}
+
+func (h *H) shortestDistanceBruteForce(hash FuzzyHash) Sibling {
 	sibling := Sibling{
 		distance: h.hashSize,
 	}
@@ -489,11 +504,7 @@ func (h *H) ShortestDistanceBruteForce(hash FuzzyHash) Sibling {
 	return sibling
 }
 
-// ShortestDistance returns the closest sibling in the DB for
-// the specfied hash
-// This API is not reentrant and should not be called simultaneously
-// with add/remove
-func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
+func (h *H) shortestDistanceMultiindex(hash FuzzyHash) Sibling {
 	statistics.distance++
 	statistics.pendingDistance++
 	defer func() {
