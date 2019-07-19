@@ -198,6 +198,7 @@ type H struct {
 	blockSize     int // size of the block
 	lastBlockSize int // size of the last block, often != blockSize
 
+	// depends on config.useMultiindex
 	distance func(h *H, hash FuzzyHash) Sibling
 }
 
@@ -509,6 +510,17 @@ func (h *H) Contains(hash FuzzyHash) bool {
 // This API is not reentrant and should not be called simultaneously
 // with add/remove
 func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
+	statistics.distance++
+	statistics.pendingDistance++
+	defer func() {
+		statistics.pendingDistance--
+	}()
+
+	// Do I have this hash already?
+	if h.Contains(hash) {
+		statistics.distanceContains++
+		return Sibling{distance: 0, s: hash}
+	}
 	sibling := h.distance(h, hash)
 	return sibling
 }
@@ -532,17 +544,6 @@ func (h *H) shortestDistanceBruteForce(hash FuzzyHash) Sibling {
 }
 
 func (h *H) shortestDistanceMultiindex(hash FuzzyHash) Sibling {
-	statistics.distance++
-	statistics.pendingDistance++
-	defer func() {
-		statistics.pendingDistance--
-	}()
-
-	// Do I have this hash already?
-	if h.Contains(hash) {
-		statistics.distanceContains++
-		return Sibling{distance: 0, s: hash}
-	}
 	sibling := Sibling{
 		distance: h.config.hashSize,
 	}
