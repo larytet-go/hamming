@@ -302,9 +302,10 @@ func HashStringToFuzzyHash(s string) (FuzzyHash, error) {
 	return FuzzyHash, nil
 }
 
+// Call to bits.OnesCount64() is faster than anything else by at least 30% in my tests
 // See https://stackoverflow.com/questions/19105791/is-there-a-big-bitcount/32695740#32695740
-// Copy from github.com/steakknife/hamming
-// See also https://stackoverflow.com/questions/34116205/count-number-of-set-bits-in-a-long-number
+// http://github.com/steakknife/hamming
+// https://stackoverflow.com/questions/34116205/count-number-of-set-bits-in-a-long-number
 // https://gist.github.com/mikeb01/3524824
 func distanceUint64s(b0, b1 []uint64) int {
 	d := 0
