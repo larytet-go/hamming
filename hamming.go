@@ -152,6 +152,11 @@ func (fh FuzzyHash) Dup() FuzzyHash {
 // block is up to 16 bits long
 type indexTable map[uint16]([]uint32)
 
+// Config keeps all configuration parameters required by the
+// New() API
+// I prefer to keep parameters provided by the application in
+// a separate structure. Another upside is that it simpleifies testing
+// of different configurations
 type Config struct {
 	hashSize      int
 	maxDistance   int
