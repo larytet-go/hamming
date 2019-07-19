@@ -62,6 +62,10 @@ type Sibling struct {
 	distance int
 }
 
+func (s Sibling) isEqual(s1 Sibling) bool {
+	return s.s.IsEqual(s1.s) && (s.distance == s1.distance)
+}
+
 // ToString turns []FuzzyHash{0x00} into "0000000000000000"
 func (fh FuzzyHash) ToString() string {
 	var buffer bytes.Buffer

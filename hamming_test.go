@@ -347,6 +347,10 @@ func TestHammingDistance(t *testing.T) {
 		if !bestSibling.s.IsEqual(test.bestSibling.s) {
 			t.Errorf("Test %d failed: expected %s got %s", testID, test.bestSibling.s.ToString(), bestSibling.s.ToString())
 		}
+		siblingBruteForce := h.shortestDistanceBruteForce(fh)
+		if !bestSibling.isEqual(siblingBruteForce) {
+			t.Errorf("Test %d failed: expected %s got %s", testID, bestSibling.s.ToString(), siblingBruteForce.s.ToString())
+		}
 	}
 }
 
@@ -362,6 +366,10 @@ func TestHammingDup(t *testing.T) {
 	sibling = h.ShortestDistance(fh)
 	if sibling.distance != 0 || !sibling.s.IsEqual(fh) {
 		t.Errorf("Failed to find sibling: got distance %d, hash %s", sibling.distance, sibling.s.ToString())
+	}
+	siblingBruteForce := h.shortestDistanceBruteForce(fh)
+	if !sibling.isEqual(siblingBruteForce) {
+		t.Errorf("Failed to brute force: expected %s got %s", sibling.s.ToString(), siblingBruteForce.s.ToString())
 	}
 }
 
