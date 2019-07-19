@@ -331,22 +331,6 @@ func distanceUint64s(b0, b1 []uint64) int {
 	return int(d)
 }
 
-func closestSibling(s []uint64, hashes []FuzzyHash) Sibling {
-	sibling := Sibling{
-		distance: 64 * len(s),
-	}
-	for _, hash := range hashes {
-		hammingDistance := distanceUint64s(s, hash)
-		if hammingDistance < sibling.distance {
-			sibling = Sibling{
-				s:        hash,
-				distance: hammingDistance,
-			}
-		}
-	}
-	return sibling
-}
-
 // Recipe from https://play.golang.org/p/k53JzyvnE0
 func addMultiindex(multiIndexTables []indexTable, blockIndex uint8, blockValue uint16, hashIndex uint32, preallocate int) {
 	if multiIndexTables[blockIndex] == nil {
@@ -408,6 +392,10 @@ func (h *H) add(hash FuzzyHash) bool {
 	// I maintain a map for quick removing a hash
 	h.hashesLookup[key] = uint32(hashIndex)
 
+	if !h.config.useMultiindex {
+		return true
+	}
+
 	// Add hashIndex to the sorted arrays in multiIndexTables
 	hash = hash.Dup()
 	blockMask := (uint64(1) << uint64(h.blockSize)) - 1
@@ -441,6 +429,8 @@ func (h *H) remove(hash FuzzyHash) bool {
 
 	// I maintain a map for quick removing a hash
 	hashIndex := uint32(h.hashesLookup[key])
+	delete(h.hashesLookup, key)
+	copy(h.hashes[hashIndex:], h.hashes[hashIndex+1:])
 
 	// Remove hashIndex from the sorted arrays in multiIndexTables
 	blockMask := (uint64(1) << uint64(h.blockSize)) - 1
@@ -521,7 +511,24 @@ func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
 		statistics.distanceContains++
 		return Sibling{distance: 0, s: hash}
 	}
+
 	sibling := h.distance(h, hash)
+	return sibling
+}
+
+func closestSibling(s []uint64, hashes []FuzzyHash) Sibling {
+	sibling := Sibling{
+		distance: 64 * len(s),
+	}
+	for _, hash := range hashes {
+		hammingDistance := distanceUint64s(s, hash)
+		if hammingDistance < sibling.distance {
+			sibling = Sibling{
+				s:        hash,
+				distance: hammingDistance,
+			}
+		}
+	}
 	return sibling
 }
 

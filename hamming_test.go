@@ -213,7 +213,7 @@ func TestHammingAdd(t *testing.T) {
 				t.Errorf("Test %d failed", testID)
 			}
 			if h.Contains(fh) {
-				//t.Errorf("Test %d failed", testID)
+				t.Errorf("Test %d failed", testID)
 			}
 		}
 	}
