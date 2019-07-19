@@ -148,11 +148,18 @@ func (fh FuzzyHash) Dup() FuzzyHash {
 // block is up to 16 bits long
 type indexTable map[uint16]([]uint32)
 
+type Config struct {
+	hashSize      int
+	maxDistance   int
+	useMultiindex bool
+}
+
 // H structure keeps hash tables for fast hamming distance calculation
 // I am running lock free. Only one thread handles lookup/add/remove
 // operations
 // See "Fast and compact Hamming distance index" (Simon Gog, Rossano Venturini)
 type H struct {
+	config Config
 	// An array of all hashes
 	hashes []FuzzyHash
 
@@ -165,8 +172,6 @@ type H struct {
 	// For larger sets I can use address of the hash (uintptr)
 	hashesLookup map[string]uint32
 
-	maxDistance   int // maximum hamming distance I care of
-	hashSize      int // bits
 	blocks        int // number of blocks in the hash
 	blockSize     int // size of the block
 	lastBlockSize int // size of the last block, often != blockSize
@@ -176,7 +181,7 @@ type H struct {
 
 // New creates an instance of hammer distance calculator
 // Set useMultiindex to 'false' for best performance
-func New(hashSize int, maxDistance int, useMultiindex bool) (*H, error) {
+func New(config Config) (*H, error) {
 	if hashSize%64 != 0 {
 		return &H{}, fmt.Errorf("hash size modulus 64 is not zero %d", hashSize)
 	}
@@ -200,6 +205,7 @@ func New(hashSize int, maxDistance int, useMultiindex bool) (*H, error) {
 	}
 
 	h := H{
+		config:        config,
 		maxDistance:   maxDistance,
 		hashSize:      hashSize,
 		blockSize:     blockSize,
@@ -572,7 +578,7 @@ func (h *H) shortestDistanceMultiindex(hash FuzzyHash) Sibling {
 // This API is not reentrant and should not be called simultaneously
 // with add/remove
 func (h *H) Dup() *H {
-	newH, _ := New(h.hashSize, h.maxDistance)
+	newH, _ := New(h.config)
 	newH.hashes = make([]FuzzyHash, len(h.hashes))
 	copy(newH.hashes, h.hashes)
 	for blockIndex, indexTable := range h.multiIndexTables {
