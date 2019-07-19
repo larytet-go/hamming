@@ -182,32 +182,30 @@ type H struct {
 // New creates an instance of hammer distance calculator
 // Set useMultiindex to 'false' for best performance
 func New(config Config) (*H, error) {
-	if hashSize%64 != 0 {
-		return &H{}, fmt.Errorf("hash size modulus 64 is not zero %d", hashSize)
+	if config.hashSize%64 != 0 {
+		return &H{}, fmt.Errorf("hash size modulus 64 is not zero %d", config.hashSize)
 	}
 
-	blocks := maxDistance + 1 // If maxDsitance is 35 bits I need 36 blocks
+	blocks := config.maxDistance + 1 // If maxDsitance is 35 bits I need 36 blocks
 	if blocks > 255 {
 		return &H{}, fmt.Errorf("I do not support more than 255 blocks, got %d", blocks)
 	}
-	blockSize := hashSize / blocks // and block size 7.11(1) bits
-	lastBlockSize := blockSize     // 35 seven bits blocks and one 11 bits block
+	blockSize := config.hashSize / blocks // and block size 7.11(1) bits
+	lastBlockSize := blockSize            // 35 seven bits blocks and one 11 bits block
 
-	if blocks*blockSize < hashSize { // 36*7=252 < 256
-		lastBlockSize = hashSize - ((blocks - 1) * blockSize) // 11 bits
+	if blocks*blockSize < config.hashSize { // 36*7=252 < 256
+		lastBlockSize = config.hashSize - ((blocks - 1) * blockSize) // 11 bits
 	}
 	// lastBlockCombinations := combin.Combinations(lastBlockSize, blockSize)
 
 	// This is fast
 	distance := (*H).shortestDistanceBruteForce
-	if useMultiindex { // Ok, if you insist
+	if config.useMultiindex { // Ok, if you insist
 		distance := (*H).shortestDistanceMultiindex
 	}
 
 	h := H{
 		config:        config,
-		maxDistance:   maxDistance,
-		hashSize:      hashSize,
 		blockSize:     blockSize,
 		lastBlockSize: lastBlockSize,
 		blocks:        blocks,
@@ -494,7 +492,7 @@ func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
 
 func (h *H) shortestDistanceBruteForce(hash FuzzyHash) Sibling {
 	sibling := Sibling{
-		distance: h.hashSize,
+		distance: h.config.hashSize,
 	}
 	statistics.distanceCandidates += uint64(len(h.hashes))
 	for _, candidateHash := range h.hashes {
@@ -523,7 +521,7 @@ func (h *H) shortestDistanceMultiindex(hash FuzzyHash) Sibling {
 		return Sibling{distance: 0, s: hash}
 	}
 	sibling := Sibling{
-		distance: h.hashSize,
+		distance: h.config.hashSize,
 	}
 
 	// for all 7 bits sub-strings in the 'hash'
