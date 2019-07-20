@@ -327,6 +327,9 @@ func distanceUint64s(b0, b1 []uint64) int {
 		x := b0[i] ^ b1[i]
 
 		d += bits.OnesCount64(x)
+		// I tried to break out of the loop when 'd' equals or exceeds
+		// the shortest distance found so far. There is no performance
+		// improvements
 	}
 	return int(d)
 }
