@@ -192,6 +192,9 @@ type H struct {
 	// A map of all entries in the array 'hashes'. I need the map for quick removal of hashes
 	// Number of hashes I can keep wont excees 2^32-1. For 32 bytes hashes 2^32 is 140GB
 	// For larger sets I can use address of the hash (uintptr)
+	// Lookup in the map impacts performance for uniform data sets. I want to have a fast
+	// Contains() API. Another upside is I get a burst of the same queries which match one
+	// an entry in the map. I can do add/remove in O(1) time instead of O(N*ln(N))
 	hashesLookup map[string]uint32
 
 	blocks        int // number of blocks in the hash
