@@ -29,27 +29,32 @@ import (
 // Statistics keeps all global debug counters and performance
 // monitors
 type Statistics struct {
-	pendingDistance         uint64 // intentionally not atomic
-	distance                uint64
-	distanceContains        uint64
-	distanceCandidates      uint64
-	distanceBetterCandidate uint64
-	distanceNoIndex         uint64
-	distanceNoCandidates    uint64
-	distanceAlreadyChecked  uint64
+	PendingDistance         uint64 // intentionally not atomic
+	Distance                uint64
+	DistanceContains        uint64
+	DistanceCandidates      uint64
+	DistanceBetterCandidate uint64
+	DistanceNoIndex         uint64
+	DistanceNoCandidates    uint64
+	DistanceAlreadyChecked  uint64
 
-	addIndex        uint64
-	addIndexExists  uint64
-	addIndexExists1 uint64
+	AddIndex        uint64
+	AddIndexExists  uint64
+	AddIndexExists1 uint64
 
-	removeIndex          uint64
-	removeIndexNotFound  uint64
-	removeIndexNotFound1 uint64
-	removeIndexNotFound2 uint64
-	removeIndexNotFound3 uint64
+	RemoveIndex          uint64
+	RemoveIndexNotFound  uint64
+	RemoveIndexNotFound1 uint64
+	RemoveIndexNotFound2 uint64
+	RemoveIndexNotFound3 uint64
 }
 
 var statistics = &Statistics{}
+
+// GetStatistics access debug statistics
+func GetStatistics() Statistics {
+	return *statistics
+}
 
 // FuzzyHash uses 64 bits words instead of bytes because I "know"
 // that number of bits in my hashes is multiply of 64
@@ -359,7 +364,7 @@ func addMultiindex(multiIndexTables []indexTable, blockIndex uint8, blockValue u
 	hashes := indexTable[blockValue]
 	insertIndex := sort.Search(len(hashes), func(i int) bool { return hashes[i] >= hashIndex })
 	if (len(hashes) > insertIndex) && (hashes[insertIndex] == hashIndex) {
-		statistics.addIndexExists1++
+		statistics.AddIndexExists1++
 		return
 	}
 	hashes = append(hashes, 0)
@@ -374,18 +379,18 @@ func addMultiindex(multiIndexTables []indexTable, blockIndex uint8, blockValue u
 
 func removeMultiindex(multiIndexTables []indexTable, blockIndex uint8, blockValue uint16, hashIndex uint32, preallocate int) {
 	if multiIndexTables[blockIndex] == nil {
-		statistics.removeIndexNotFound1++
+		statistics.RemoveIndexNotFound1++
 		return
 	}
 	indexTable := multiIndexTables[blockIndex]
 	if _, ok := indexTable[blockValue]; !ok {
-		statistics.removeIndexNotFound2++
+		statistics.RemoveIndexNotFound2++
 		return
 	}
 	hashes := indexTable[blockValue]
 	removeIndex := sort.Search(len(hashes), func(i int) bool { return hashes[i] >= hashIndex })
 	if (len(hashes) <= removeIndex) || (hashes[removeIndex] == hashIndex) {
-		statistics.removeIndexNotFound3++
+		statistics.RemoveIndexNotFound3++
 		return
 	}
 	copy(hashes[removeIndex:], hashes[removeIndex+1:])
@@ -395,10 +400,10 @@ func removeMultiindex(multiIndexTables []indexTable, blockIndex uint8, blockValu
 }
 
 func (h *H) add(hash FuzzyHash) bool {
-	statistics.addIndex++
+	statistics.AddIndex++
 	key := hash.toKey()
 	if _, ok := h.hashesLookup[key]; ok {
-		statistics.addIndexExists++
+		statistics.AddIndexExists++
 		return false
 	}
 	// add the new hash to the end of the list
@@ -436,10 +441,10 @@ func (h *H) add(hash FuzzyHash) bool {
 }
 
 func (h *H) remove(hash FuzzyHash) bool {
-	statistics.removeIndex++
+	statistics.RemoveIndex++
 	key := hash.toKey()
 	if _, ok := h.hashesLookup[key]; !ok {
-		statistics.removeIndexNotFound++
+		statistics.RemoveIndexNotFound++
 		return false
 	}
 
@@ -525,15 +530,15 @@ func (h *H) Contains(hash FuzzyHash) bool {
 // This API is not reentrant and should not be called simultaneously
 // with add/remove
 func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
-	statistics.distance++
-	statistics.pendingDistance++
+	statistics.Distance++
+	statistics.PendingDistance++
 	defer func() {
-		statistics.pendingDistance--
+		statistics.PendingDistance--
 	}()
 
 	// Do I have this hash already?
 	if h.Contains(hash) {
-		statistics.distanceContains++
+		statistics.DistanceContains++
 		return Sibling{distance: 0, s: hash}
 	}
 
@@ -561,11 +566,11 @@ func (h *H) shortestDistanceBruteForce(hash FuzzyHash) Sibling {
 	sibling := Sibling{
 		distance: h.config.HashSize,
 	}
-	statistics.distanceCandidates += uint64(len(h.hashes))
+	statistics.DistanceCandidates += uint64(len(h.hashes))
 	for _, candidateHash := range h.hashes {
 		hammingDistance := distanceUint64s(hash, candidateHash)
 		if hammingDistance < sibling.distance {
-			statistics.distanceBetterCandidate++
+			statistics.DistanceBetterCandidate++
 			sibling = Sibling{
 				s:        candidateHash,
 				distance: hammingDistance,
@@ -596,19 +601,19 @@ func (h *H) shortestDistanceMultiindex(hash FuzzyHash) Sibling {
 		hash.rsh(uint64(h.blockSize))
 		indexTable := h.multiIndexTables[b]
 		if indexTable == nil {
-			statistics.distanceNoIndex++
+			statistics.DistanceNoIndex++
 			continue
 		}
 		candidates, ok := indexTable[uint16(blockValue)]
 		if !ok {
-			statistics.distanceNoCandidates++
+			statistics.DistanceNoCandidates++
 			continue
 		}
-		statistics.distanceCandidates += uint64(len(candidates))
+		statistics.DistanceCandidates += uint64(len(candidates))
 		for _, candidateIndex := range candidates {
 			checkedCandidates[candidateIndex]++
 			if checkedCandidates[candidateIndex] > 1 {
-				statistics.distanceAlreadyChecked++
+				statistics.DistanceAlreadyChecked++
 				continue
 			}
 			candidateHash := h.hashes[candidateIndex]
@@ -616,7 +621,7 @@ func (h *H) shortestDistanceMultiindex(hash FuzzyHash) Sibling {
 			// fmt.Printf("Sample %s Candidate %s distance %d blockV=%x hash=%s\n",
 			//	hashOrig.ToString(), candidateHash.ToString(), hammingDistance, blockValue, hash.ToString())
 			if hammingDistance < sibling.distance {
-				statistics.distanceBetterCandidate++
+				statistics.DistanceBetterCandidate++
 				sibling = Sibling{
 					s:        candidateHash,
 					distance: hammingDistance,
