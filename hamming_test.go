@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"flag"
 	"io"
+	"math/bits"
 	"math/rand"
 	"os"
 	"strconv"
@@ -457,6 +458,34 @@ func (x *XorShift1024Star) Init() {
 		x.s[i] = rand.Uint64()
 	}
 	x.p = 0
+}
+
+func BenchmarkBitsOnesCount64(b *testing.B) {
+	d := 0
+	b0 := make([]uint64, 256)
+	b1 := make([]uint64, 256)
+
+	for i := 0; i < b.N; i++ {
+		for i := 0; i < len(b0); i++ {
+			x := b0[i] ^ b1[i]
+			d += bits.OnesCount64(x)
+		}
+	}
+	if d != 0 {
+		b.Errorf("Distance between two zero arrays is %d", d)
+	}
+}
+
+func BenchmarkSteakknifeHamming(b *testing.B) {
+	d := 0
+	b0 := make([]uint64, 256)
+	b1 := make([]uint64, 256)
+	for i := 0; i < b.N; i++ {
+		d += hamming.Uint64s(b0, b1)
+	}
+	if d != 0 {
+		b.Errorf("Distance between two zero arrays is %d", d)
+	}
 }
 
 const (
