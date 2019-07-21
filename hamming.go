@@ -66,6 +66,16 @@ func (s Sibling) isEqual(s1 Sibling) bool {
 	return s.s.IsEqual(s1.s) && (s.distance == s1.distance)
 }
 
+// Hash returns distance hash
+func (s Sibling) Hash() string {
+	return s.s.ToString()
+}
+
+// Distance returns distance field
+func (s Sibling) Distance() int {
+	return s.distance
+}
+
 // ToString turns []FuzzyHash{0x00} into "0000000000000000"
 func (fh FuzzyHash) ToString() string {
 	var buffer bytes.Buffer
