@@ -487,7 +487,7 @@ func generateBitCombinations(value uint64, combinations [][]int) (r []uint64) {
 func (h *H) AddBulk(hashes []FuzzyHash) bool {
 	ok := true
 	for _, hash := range hashes {
-		ok = ok && h.add(hash)
+		ok = h.add(hash) && ok
 	}
 	return ok
 }
