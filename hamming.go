@@ -487,6 +487,11 @@ func (h *H) AddBulk(hashes []FuzzyHash) bool {
 	return ok
 }
 
+// Count returns number of hashes in the dictionary
+func (h *H) Count() int {
+	return len(h.hashes)
+}
+
 // RemoveBulk removes specified hashes from the DB
 // This API is not reentrant and should not be called simultaneously
 // with add/remove/dup/distance
