@@ -158,8 +158,8 @@ type indexTable map[uint16]([]uint32)
 // a separate structure. Another upside is that it simpleifies testing
 // of different configurations
 type Config struct {
-	hashSize    int // For example, 256 bits
-	maxDistance int // 35 bits
+	HashSize    int // For example, 256 bits
+	MaxDistance int // 35 bits
 
 	// Use 'false' for faster lookup
 	// Brute force works faster on sets of up to 10M entries
@@ -173,7 +173,7 @@ type Config struct {
 	// misses
 	// Single stage brute force approach which calculates all hamming
 	// distances is faster in the tests.
-	useMultiindex bool
+	UseMultiindex bool
 }
 
 // H structure keeps hash tables for fast hamming distance calculation
@@ -201,32 +201,32 @@ type H struct {
 	blockSize     int // size of the block
 	lastBlockSize int // size of the last block, often != blockSize
 
-	// depends on config.useMultiindex
+	// depends on config.UseMultiindex
 	distance func(h *H, hash FuzzyHash) Sibling
 }
 
 // New creates an instance of hammer distance calculator
 // Set useMultiindex to 'false' for best performance
 func New(config Config) (*H, error) {
-	if config.hashSize%64 != 0 {
-		return &H{}, fmt.Errorf("hash size modulus 64 is not zero %d", config.hashSize)
+	if config.HashSize%64 != 0 {
+		return &H{}, fmt.Errorf("hash size modulus 64 is not zero %d", config.HashSize)
 	}
 
-	blocks := config.maxDistance + 1 // If maxDsitance is 35 bits I need 36 blocks
+	blocks := config.MaxDistance + 1 // If maxDsitance is 35 bits I need 36 blocks
 	if blocks > 255 {
 		return &H{}, fmt.Errorf("I do not support more than 255 blocks, got %d", blocks)
 	}
-	blockSize := config.hashSize / blocks // and block size 7.11(1) bits
+	blockSize := config.HashSize / blocks // and block size 7.11(1) bits
 	lastBlockSize := blockSize            // 35 seven bits blocks and one 11 bits block
 
-	if blocks*blockSize < config.hashSize { // 36*7=252 < 256
-		lastBlockSize = config.hashSize - ((blocks - 1) * blockSize) // 11 bits
+	if blocks*blockSize < config.HashSize { // 36*7=252 < 256
+		lastBlockSize = config.HashSize - ((blocks - 1) * blockSize) // 11 bits
 	}
 	// lastBlockCombinations := combin.Combinations(lastBlockSize, blockSize)
 
 	// This is fast
 	distance := (*H).shortestDistanceBruteForce
-	if config.useMultiindex { // Ok, if you insist
+	if config.UseMultiindex { // Ok, if you insist
 		distance = (*H).shortestDistanceMultiindex
 	}
 
@@ -398,7 +398,7 @@ func (h *H) add(hash FuzzyHash) bool {
 	// I maintain a map for quick removing a hash
 	h.hashesLookup[key] = uint32(hashIndex)
 
-	if !h.config.useMultiindex {
+	if !h.config.UseMultiindex {
 		return true
 	}
 
@@ -438,7 +438,7 @@ func (h *H) remove(hash FuzzyHash) bool {
 	delete(h.hashesLookup, key)
 	copy(h.hashes[hashIndex:], h.hashes[hashIndex+1:])
 
-	if !h.config.useMultiindex {
+	if !h.config.UseMultiindex {
 		return true
 	}
 
@@ -544,7 +544,7 @@ func closestSibling(s []uint64, hashes []FuzzyHash) Sibling {
 
 func (h *H) shortestDistanceBruteForce(hash FuzzyHash) Sibling {
 	sibling := Sibling{
-		distance: h.config.hashSize,
+		distance: h.config.HashSize,
 	}
 	statistics.distanceCandidates += uint64(len(h.hashes))
 	for _, candidateHash := range h.hashes {
@@ -562,7 +562,7 @@ func (h *H) shortestDistanceBruteForce(hash FuzzyHash) Sibling {
 
 func (h *H) shortestDistanceMultiindex(hash FuzzyHash) Sibling {
 	sibling := Sibling{
-		distance: h.config.hashSize,
+		distance: h.config.HashSize,
 	}
 
 	// for all 7 bits sub-strings in the 'hash'
