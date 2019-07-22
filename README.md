@@ -1,12 +1,11 @@
 Package hamming implelements multi-index minimal hammign distance algorithm
 See ["Fast and compact Hamming distance index"](http://pages.di.unipi.it/rossano/wp-content/uploads/sites/7/2016/05/sigir16b.pdf) (Simon Gog, Rossano Venturini)
 
-I have built a POC which finds ~3M/s shortest hamming distances between a sample and the 300K set. This is per core. Most of the performance improvements came from three things.
-* I use 7 bits blocks (surprisingly) and the first search phase is very fast.
-* I use array of eight 64 bits words to keep hashes and can calculate a hamming distance between two 256 hashes in 20ns (50M hashes/s on a single i7 core. The code counting set bits does contain loops.
+I have built a POC which computes ~50M/s shortest hamming distances between two 265 bits hashes. Most of the performance improvements came from three things.
+
+* I use array of eight 64 bits words to keep hashes and can calculate a hamming distance between two 256 hashes in 20ns or 50M hashes/s on a single i7 core. 
 * I keep two tables - one for search and another for updates. After an update I switch the tables. The code runs lock free.
 
-This code uses [github.com/steakknife/hamming](https://github.com/steakknife/hamming) for fast hamming distance calculations
 
 # API
 
@@ -41,30 +40,4 @@ BenchmarkHashStringToFuzzyHash-4   	10000000	       174 ns/op
 ```
 
 
-* Notes
 
-Popcount does not require loops
-
-```Go
-const (
-	m1q uint64 = 0x5555555555555555
-	m2q        = 0x3333333333333333
-	m4q        = 0x0f0f0f0f0f0f0f0f
-	hq         = 0x0101010101010101
-)
-
-// CountBitsUint64 count 1's in x
-func CountBitsUint64(x uint64) int {
-	// put count of each 2 bits into those 2 bits
-	x -= (x >> 1) & m1q
-
-	// put count of each 4 bits into those 4 bits
-	x = (x & m2q) + ((x >> 2) & m2q)
-
-	// put count of each 8 bits into those 8 bits
-	x = (x + (x >> 4)) & m4q
-
-	// returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
-	return int((x * hq) >> 56)
-}
-```
