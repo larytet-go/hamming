@@ -554,6 +554,11 @@ func (h *H) ShortestDistance(hash FuzzyHash) Sibling {
 		return Sibling{distance: 0, s: hash}
 	}
 
+	sibling := h.Distance(hash)
+	return sibling
+}
+
+func (h *H) Distance(hash FuzzyHash) Sibling {
 	sibling := h.distance(h, hash)
 	return sibling
 }
