@@ -411,7 +411,7 @@ func removeMultiindex(multiIndexTables []indexTable, blockIndex uint8, blockValu
 	multiIndexTables[blockIndex] = indexTable
 }
 
-func (h *H) add(hash FuzzyHash) bool {
+func (h *H) Add(hash FuzzyHash) bool {
 	statistics.AddIndex++
 	key := hash.toKey()
 	if _, ok := h.hashesLookup[key]; ok {
@@ -499,7 +499,7 @@ func generateBitCombinations(value uint64, combinations [][]int) (r []uint64) {
 func (h *H) AddBulk(hashes []FuzzyHash) bool {
 	ok := true
 	for _, hash := range hashes {
-		ok = h.add(hash) && ok
+		ok = h.Add(hash) && ok
 	}
 	return ok
 }

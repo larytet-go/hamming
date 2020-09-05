@@ -227,7 +227,7 @@ func TestHammingAdd(t *testing.T) {
 		}
 		for _, hash := range test.hashes {
 			fh, _ := HashStringToFuzzyHash(hash)
-			if !h.add(fh) {
+			if !h.Add(fh) {
 				t.Errorf("Test %d failed", testID)
 			}
 			if !h.Contains(fh) {
@@ -356,7 +356,7 @@ func TestHammingDistance(t *testing.T) {
 		}
 		for _, hash := range test.hashes {
 			fh, _ := HashStringToFuzzyHash(hash)
-			if !h.add(fh) {
+			if !h.Add(fh) {
 				t.Errorf("Test %d failed", testID)
 			}
 			if !h.Contains(fh) {
@@ -381,7 +381,7 @@ func TestHammingDistance(t *testing.T) {
 func TestHammingDup(t *testing.T) {
 	fh, _ := HashStringToFuzzyHash(allFsHash)
 	h, _ := New(Config{HashSize: 256, MaxDistance: 35, UseMultiindex: true})
-	h.add(fh)
+	h.Add(fh)
 	sibling := h.ShortestDistance(fh)
 	if sibling.distance != 0 || !sibling.s.IsEqual(fh) {
 		t.Errorf("Failed to find sibling: got distance %d, hash %s %v", sibling.distance, sibling.s.ToString(), h.multiIndexTables)
@@ -436,7 +436,7 @@ func TestLoadRealData(t *testing.T) {
 		if err != nil {
 			t.Errorf("Failed to parse hash string %s from file '%s' %v", line, dataSetFilename, err)
 		}
-		realDataTest.add(fh)
+		realDataTest.Add(fh)
 		lastHash = fh
 		if !realDataTest.Contains(lastHash) {
 			t.Errorf("Failed to add hash %s", lastHash.ToString())
@@ -596,7 +596,7 @@ func benchmarkUniformDataSet(setSize int, count int, b *testing.B) {
 	xs.Init()
 	for i := 0; i < setSize; i++ {
 		s := randomFuzzyHash(256, xs)
-		h.add(s)
+		h.Add(s)
 	}
 	b.ResetTimer()
 
@@ -634,7 +634,7 @@ func BenchmarkUniformDataSet1M1(b *testing.B) {
 func benchmarkHammingAdd(h *H, count int, b *testing.B) {
 	for i := 0; i < count; i++ {
 		fh, _ := HashStringToFuzzyHash(allFsHash) // This line dominates add()
-		h.add(fh)
+		h.Add(fh)
 	}
 	h.RemoveAll()
 }
