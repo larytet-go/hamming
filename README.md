@@ -40,4 +40,11 @@ BenchmarkHashStringToFuzzyHash-4   	10000000	       174 ns/op
 ```
 
 
+# Links
 
+* https://github.com/dutchcoders/gossdeep
+* https://ssdeep-project.github.io/ssdeep/
+* https://github.com/glaslos/ssdeep
+* https://towardsdatascience.com/fuzzy-matching-at-scale-84f2bfd0c536
+* https://medium.com/@glaslos/locality-sensitive-fuzzy-hashing-66127178ebdc
+* https://github.com/glaslos/tlsh
