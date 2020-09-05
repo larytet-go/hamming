@@ -537,6 +537,10 @@ func (h *H) Contains(hash FuzzyHash) bool {
 	return ok
 }
 
+func (h *H) Config() Config {
+	return h.config
+}
+
 // ShortestDistance returns the closest sibling in the DB for
 // the specfied hash
 // This API is not reentrant and should not be called simultaneously
