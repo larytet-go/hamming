@@ -17,6 +17,7 @@ package hamming
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"math/bits"
 	"reflect"
@@ -303,12 +304,23 @@ var asciiCodes = []int{
 	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 260
 }
 
+// BytesToFuzzyHash converts []byte to FuzzyHash
+func BytesToFuzzyHash(data []byte) (FuzzyHash, error) {
+	fuzzyHash := []uint64{}
+	if len(data) % 8 != 0 {
+		return fuzzyHash, fmt.Errorf("Bad length %d in %v", len(data), data)
+	}
+	fuzzyHash = make([]uint64, len(data)/8)
+	err := binary.Read(bytes.NewReader(data), binary.LittleEndian, fuzzyHash)
+	return fuzzyHash, err
+}
+
 // HashStringToFuzzyHash converts
 // "112233445566778899AA112233445566" to [FuzzyHash]{0x1122334455667788, 0x99AA112233445566}
 func HashStringToFuzzyHash(s string) (FuzzyHash, error) {
-	FuzzyHash := []uint64{}
+	fuzzyHash := []uint64{}
 	if len(s)%2 != 0 {
-		return FuzzyHash, fmt.Errorf("Bad length %d in '%s", len(s), s)
+		return fuzzyHash, fmt.Errorf("Bad length %d in '%s", len(s), s)
 	}
 	var val uint64
 	bytes := 0
@@ -316,22 +328,22 @@ func HashStringToFuzzyHash(s string) (FuzzyHash, error) {
 	for i := 0; i < len(s); i += 2 { // I reduce number of loops by processing
 		d0 := asciiCodes[byte(s[i])] // two charactes (a byte) at time - 25% improvement
 		if d0 < 0 {
-			return FuzzyHash, fmt.Errorf("Bad character '%v' offser %d in '%s'", s[i], i, s)
+			return fuzzyHash, fmt.Errorf("Bad character '%v' offser %d in '%s'", s[i], i, s)
 		}
 		d1 := asciiCodes[byte(s[i+1])]
 		if d1 < 0 {
-			return FuzzyHash, fmt.Errorf("Bad character '%v' offser %d in '%s'", s[i+1], i+1, s)
+			return fuzzyHash, fmt.Errorf("Bad character '%v' offser %d in '%s'", s[i+1], i+1, s)
 		}
 		val = (val << 4) | uint64(d0)
 		val = (val << 4) | uint64(d1)
 		bytes++
 		if bytes == 8 {
-			FuzzyHash = append(FuzzyHash, val)
+			fuzzyHash = append(fuzzyHash, val)
 			val = 0
 			bytes = 0
 		}
 	}
-	return FuzzyHash, nil
+	return fuzzyHash, nil
 }
 
 // Call to bits.OnesCount64() is faster than anything else by at least 30% in my tests

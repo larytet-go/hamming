@@ -89,6 +89,29 @@ func TestHashStringToFuzzyHash(t *testing.T) {
 	}
 }
 
+type BytesToFuzzyHashTest struct {
+	in         []byte
+	out        FuzzyHash
+	raiseError bool
+}
+
+var bytesToFuzzyHashTests = []BytesToFuzzyHashTest{
+	{in: []byte{0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88}, out: FuzzyHash{0x8877665544332211}},
+	{in: []byte{0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77},       out: FuzzyHash{0x8877665544332211}, raiseError: true},
+}
+
+func TestBytesToFuzzyHash(t *testing.T) {
+	for testID, test := range bytesToFuzzyHashTests {
+		fh, err := BytesToFuzzyHash(test.in)
+		if err != nil && !test.raiseError {
+			t.Errorf("Test %d failed: %v", testID, err)
+		}
+		if !fh.IsEqual(test.out) && !test.raiseError {
+			t.Errorf("Test %d failed: expected %s, got %s", testID, test.out.ToString(), fh.ToString())
+		}
+	}
+}
+
 func TestFuzzyHashAnd(t *testing.T) {
 	fh := FuzzyHash{0x3031323334353637, 0x3736353433323130}
 	mask := uint64(0xFF01)
