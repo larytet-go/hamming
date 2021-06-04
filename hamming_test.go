@@ -7,7 +7,7 @@ import (
 	"bufio"
 	"flag"
 	"io"
-	"ioutil"
+	"io/ioutil"
 	"math/bits"
 	"math/rand"
 	"os"
