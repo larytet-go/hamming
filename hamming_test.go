@@ -14,9 +14,58 @@ import (
 	"strings"
 	"testing"
 
+	"archive/zip"
+	"path/filepath"
+
 	"github.com/larytet-go/sprintf"
 	"github.com/steakknife/hamming"
+
+	"github.com/dutchcoders/gossdeep"
 )
+
+
+
+func TestNugets(t *testing.T) {
+	nupackages, _ := filepath.Glob("./nuget/*.nupkg")
+	for _, nupackage := range nupackages {
+		fuzzyHasher, err := ssdeep.New()			
+		if err != nil {
+			t.Errorf("Faied to create fuzzy hasher for the zip %s %v", nupackage, err)
+			continue
+		}
+
+		r, err := zip.OpenReader(src)
+		if err != nil {
+			t.Errorf("Open zip %s failed %v", nupackage, err)
+			continue
+		}
+		defer r.Close()
+		for _, f := range r.File {
+			rc, err := f.Open()
+			if err != nil {
+				t.Errorf("Open a file %s in the zip %s failed %v", nupackage, f.Name, err)
+				continue
+			}
+			rc.Close()
+			data, err = rc.ReadAll()
+			if err != nil {
+				t.Errorf("Read from a file %s in the zip %s failed %v", nupackage, f.Name, err)
+				continue
+			}
+			err := fuzzyHasher.Update(string(data))			
+			if err != nil {
+				t.Errorf("Update of the fuzzy hasher for a file %s in the zip %s failed %v", nupackage, f.Name, err)
+				continue
+			}
+		}
+		fuzzyHash, err := fuzzyHasher.Digest()
+		if err != nil {
+			t.Errorf("Digest of the fuzzy hasher for the zip %s failed %v", nupackage, err)
+		}
+		fuzzyHasher.Free()
+	}
+}
+
 
 // There is a "real-life" benchmark which requires a data set
 // The data set file contains one or more hashes separated by a newline
