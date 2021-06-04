@@ -48,3 +48,25 @@ BenchmarkHashStringToFuzzyHash-4   	10000000	       174 ns/op
 * https://towardsdatascience.com/fuzzy-matching-at-scale-84f2bfd0c536
 * https://medium.com/@glaslos/locality-sensitive-fuzzy-hashing-66127178ebdc
 * https://github.com/glaslos/tlsh
+
+
+
+
+# Sample
+
+```
+    hamming_test.go:91: nuget/newtonsoft.json.12.0.3.nupkg/lib/net20/Newtonsoft.Json.xml nuget/newtonsoft.json.12.0.1.nupkg/lib/net20/Newtonsoft.Json.xml 6
+    hamming_test.go:91: nuget/newtonsoft.json.12.0.3.nupkg/lib/net35/Newtonsoft.Json.dll nuget/newtonsoft.json.12.0.1.nupkg/lib/net35/Newtonsoft.Json.dll 62
+    hamming_test.go:91: nuget/newtonsoft.json.12.0.3.nupkg/lib/net45/Newtonsoft.Json.xml nuget/newtonsoft.json.12.0.1.nupkg/lib/net40/Newtonsoft.Json.xml 18
+    hamming_test.go:91: nuget/newtonsoft.json.12.0.3.nupkg/lib/netstandard2.0/Newtonsoft.Json.xml nuget/newtonsoft.json.12.0.1.nupkg/lib/netstandard1.0/Newtonsoft.Json.xml 4
+    hamming_test.go:91: nuget/newtonsoft.json.12.0.3.nupkg/lib/portable-net40+sl5+win8+wp8+wpa81/Newtonsoft.Json.dll nuget/newtonsoft.json.12.0.1.nupkg/lib/netstandard1.3/Newtonsoft.Json.dll 60
+    hamming_test.go:91: nuget/newtonsoft.json.12.0.3.nupkg/packageIcon.png nuget/newtonsoft.json.13.0.1.nupkg/packageIcon.png 0
+    hamming_test.go:91: nuget/newtonsoft.json.12.0.3.nupkg/lib/net20/Newtonsoft.Json.dll nuget/newtonsoft.json.13.0.1.nupkg/lib/net20/Newtonsoft.Json.dll 66
+    hamming_test.go:91: nuget/newtonsoft.json.12.0.3.nupkg/lib/net20/Newtonsoft.Json.xml nuget/newtonsoft.json.13.0.1.nupkg/lib/net20/Newtonsoft.Json.xml 4
+    hamming_test.go:91: nuget/newtonsoft.json.12.0.3.nupkg/lib/net35/Newtonsoft.Json.dll nuget/newtonsoft.json.13.0.1.nupkg/lib/net35/Newtonsoft.Json.dll 50
+    hamming_test.go:91: nuget/newtonsoft.json.12.0.3.nupkg/lib/net35/Newtonsoft.Json.xml nuget/newtonsoft.json.13.0.1.nupkg/lib/net35/Newtonsoft.Json.xml 0
+    hamming_test.go:91: nuget/newtonsoft.json.12.0.3.nupkg/lib/net40/Newtonsoft.Json.dll nuget/newtonsoft.json.13.0.1.nupkg/lib/net40/Newtonsoft.Json.dll 36
+    hamming_test.go:91: nuget/newtonsoft.json.12.0.3.nupkg/lib/net40/Newtonsoft.Json.xml nuget/newtonsoft.json.13.0.1.nupkg/lib/net40/Newtonsoft.Json.xml 0
+    hamming_test.go:91: nuget/newtonsoft.json.12.0.3.nupkg/lib/net45/Newtonsoft.Json.dll nuget/newtonsoft.json.13.0.1.nupkg/lib/net45/Newtonsoft.Json.dll 62
+    hamming_test.go:91: nuget/newtonsoft.json.12.0.3.nupkg/lib/net45/Newtonsoft.Json.xml nuget/newtonsoft.json.13.0.1.nupkg/lib/net45/Newtonsoft.Json.xml 0
+```
