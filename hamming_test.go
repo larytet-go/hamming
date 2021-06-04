@@ -66,7 +66,7 @@ func collectHashes(t *testing.T, nupackage string) (hashes []string) {
 func TestNugets(t *testing.T) {
 	nupackages, _ := filepath.Glob("./nuget/*.nupkg")
 	for _, nupackage := range nupackages {
-		nupackageHashes := collectHashes(nupackage)
+		nupackageHashes := collectHashes(t, nupackage)
 	}
 }
 
