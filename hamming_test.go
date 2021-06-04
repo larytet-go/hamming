@@ -28,18 +28,18 @@ import (
 func TestNugets(t *testing.T) {
 	nupackages, _ := filepath.Glob("./nuget/*.nupkg")
 	for _, nupackage := range nupackages {
+		r, err := zip.OpenReader(src)
+		if err != nil {
+			t.Errorf("Open zip %s failed %v", nupackage, err)
+			continue
+		}
+
 		fuzzyHasher, err := ssdeep.New()			
 		if err != nil {
 			t.Errorf("Faied to create fuzzy hasher for the zip %s %v", nupackage, err)
 			continue
 		}
 
-		r, err := zip.OpenReader(src)
-		if err != nil {
-			t.Errorf("Open zip %s failed %v", nupackage, err)
-			continue
-		}
-		defer r.Close()
 		for _, f := range r.File {
 			rc, err := f.Open()
 			if err != nil {
@@ -58,10 +58,12 @@ func TestNugets(t *testing.T) {
 				continue
 			}
 		}
+		r.Close()
 		fuzzyHash, err := fuzzyHasher.Digest()
 		if err != nil {
 			t.Errorf("Digest of the fuzzy hasher for the zip %s failed %v", nupackage, err)
 		}
+		t.Logf("File %s hash %s", nupackage, fuzzyHash)
 		fuzzyHasher.Free()
 	}
 }
