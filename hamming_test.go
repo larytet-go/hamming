@@ -20,8 +20,6 @@ import (
 
 	"github.com/larytet-go/sprintf"
 	"github.com/steakknife/hamming"
-
-	"github.com/larytet-go/tlsh"
 )
 
 func collectHashes(t *testing.T, nupackage string) (hashes [][]byte) {
