@@ -39,25 +39,26 @@ func TestNugets(t *testing.T) {
 		for _, f := range r.File {
 			rc, err := f.Open()
 			if err != nil {
-				t.Errorf("Open a file %s in the zip %s failed %v", nupackage, f.Name, err)
+				t.Errorf("Open a file %s in the zip %s failed %v", f.Name, nupackage, err)
+				continue
+			}
+			data, err := ioutil.ReadAll(rc)
+			if err != nil {
+				t.Errorf("Read from a file %s in the zip %s failed %v", f.Name, nupackage, err)
+				rc.Close()
 				continue
 			}
 			rc.Close()
-			data, err := ioutil.ReadAll(rc)
-			if err != nil {
-				t.Errorf("Read from a file %s in the zip %s failed %v", nupackage, f.Name, err)
-				continue
-			}
-			if len(data) < 512 {
-				t.Logf("File %s in the zip %s is too short %v", nupackage, f.Name, len(data))
+			if len(data) < 2048 {
+				// t.Logf("File %s in the zip %s is too short %v", f.Name, nupackage, len(data))
 				continue
 			}
 			fuzzyHash, err := ssdeep.FuzzyBytes(data)
 			if err != nil {
-				t.Errorf("Fuzzy hasher for a file %s in the zip %s failed %v", nupackage, f.Name, err)
+				t.Errorf("Fuzzy hasher for a file %s in the zip %s failed %v", f.Name, nupackage, err)
 				continue
 			}
-			t.Logf("Fuzzy hass for file %s in the zip %s is too short %v", nupackage, f.Name, fuzzyHash)
+			t.Logf("Fuzzy hash for file %s in the zip %s is too short %v", f.Name, nupackage, fuzzyHash)
 		}
 		r.Close()
 	}
