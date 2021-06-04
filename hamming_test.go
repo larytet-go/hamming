@@ -39,12 +39,12 @@ func TestNugets(t *testing.T) {
 		for _, f := range r.File {
 			rc, err := f.Open()
 			if err != nil {
-				t.Errorf("Open a file %s in the zip %s failed %v", f.Name, nupackage, err)
+				t.Errorf("Open file %s in ip %s failed %v", f.Name, nupackage, err)
 				continue
 			}
 			data, err := ioutil.ReadAll(rc)
 			if err != nil {
-				t.Errorf("Read from a file %s in the zip %s failed %v", f.Name, nupackage, err)
+				t.Errorf("Read from file %s in zip %s failed %v", f.Name, nupackage, err)
 				rc.Close()
 				continue
 			}
@@ -55,10 +55,10 @@ func TestNugets(t *testing.T) {
 			}
 			fuzzyHash, err := ssdeep.FuzzyBytes(data)
 			if err != nil {
-				t.Errorf("Fuzzy hasher for a file %s in the zip %s failed %v", f.Name, nupackage, err)
+				t.Errorf("Fuzzy hasher for file %s in zip %s failed %v", f.Name, nupackage, err)
 				continue
 			}
-			t.Logf("Fuzzy hash for file %s in the zip %s is too short %v", f.Name, nupackage, fuzzyHash)
+			t.Logf("Fuzzy hash for file %s in zip %s is too short %v", f.Name, nupackage, fuzzyHash)
 		}
 		r.Close()
 	}
