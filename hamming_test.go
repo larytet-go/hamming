@@ -24,12 +24,12 @@ import (
 	"github.com/glaslos/tlsh"
 )
 
-func collectHashes(t *testing.T, nupackage string) (hashes []string) {
-	hashes = []string{}
+func collectHashes(t *testing.T, nupackage string) (hashes []*tlsh.Tlsh) {
+	hashes = []*tlsh.Tlsh{}
 	r, err := zip.OpenReader(nupackage)
 	if err != nil {
 		t.Errorf("Open zip %s failed %v", nupackage, err)
-		continue
+		return
 	}
 
 	for _, f := range r.File {
@@ -57,7 +57,7 @@ func collectHashes(t *testing.T, nupackage string) (hashes []string) {
 			t.Errorf("Fuzzy hasher for file %s in zip %s failed %v", f.Name, nupackage, err)
 			continue
 		}
-		t.Logf("Fuzzy hash for file %s in zip %s %v", f.Name, nupackage, fuzzyHash)
+		hashes = append(hashes, fuzzyHash)
 	}
 	r.Close()
 	return
@@ -67,6 +67,7 @@ func TestNugets(t *testing.T) {
 	nupackages, _ := filepath.Glob("./nuget/*.nupkg")
 	for _, nupackage := range nupackages {
 		nupackageHashes := collectHashes(t, nupackage)
+		t.Logf("Fuzzy hash for zip %s %v", nupackage, nupackageHashes)
 	}
 }
 
