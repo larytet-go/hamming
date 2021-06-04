@@ -58,7 +58,7 @@ func TestNugets(t *testing.T) {
 				t.Errorf("Fuzzy hasher for file %s in zip %s failed %v", f.Name, nupackage, err)
 				continue
 			}
-			t.Logf("Fuzzy hash for file %s in zip %s is too short %v", f.Name, nupackage, fuzzyHash)
+			t.Logf("Fuzzy hash for file %s in zip %s %v", f.Name, nupackage, fuzzyHash)
 		}
 		r.Close()
 	}
