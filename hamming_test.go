@@ -48,11 +48,6 @@ func TestNugets(t *testing.T) {
 				t.Errorf("Read from a file %s in the zip %s failed %v", nupackage, f.Name, err)
 				continue
 			}
-			err = fuzzyHasher.Update(string(data))
-			if err != nil {
-				t.Errorf("Update of the fuzzy hasher for a file %s in the zip %s failed %v", nupackage, f.Name, err)
-				continue
-			}
 			if len(data) < 512 {
 				t.Logf("File %s in the zip %s is too short %v", nupackage, f.Name, len(data))
 				continue
