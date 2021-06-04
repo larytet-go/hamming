@@ -22,8 +22,8 @@ import (
 	"github.com/steakknife/hamming"
 )
 
-func collectHashes(t *testing.T, nupackage string) (hashes [][]byte) {
-	hashes = [][]byte{}
+func collectHashes(t *testing.T, nupackage string) (hashes [][codeSize]byte) {
+	hashes = [][codeSize]byte{}
 	r, err := zip.OpenReader(nupackage)
 	if err != nil {
 		t.Errorf("Open zip %s failed %v", nupackage, err)
@@ -50,7 +50,7 @@ func collectHashes(t *testing.T, nupackage string) (hashes [][]byte) {
 			continue
 		}
 
-		fuzzyHash, err := tlsh.HashBytes(data)
+		fuzzyHash, err := HashBytes(data)
 		if err != nil {
 			t.Errorf("Fuzzy hasher for file %s in zip %s failed %v", f.Name, nupackage, err)
 			continue

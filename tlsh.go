@@ -44,7 +44,7 @@ type Tlsh struct {
 }
 
 // New represents type factory for Tlsh
-func New(checksum, lValue, q1Ratio, q2Ratio, qRatio byte, code [codeSize]byte) *Tlsh {
+func NewTlsh(checksum, lValue, q1Ratio, q2Ratio, qRatio byte, code [codeSize]byte) *Tlsh {
 	return &Tlsh{
 		checksum: checksum,
 		lValue:   lValue,
@@ -78,7 +78,7 @@ func ParseStringToTlsh(hashString string) (*Tlsh, error) {
 	q1Ratio := (qRatio >> 4) & 0xF
 	q2Ratio := qRatio & 0xF
 	copy(code[:], hashByte[3:])
-	return New(chechsum, lValue, q1Ratio, q2Ratio, qRatio, code), nil
+	return NewTlsh(chechsum, lValue, q1Ratio, q2Ratio, qRatio, code), nil
 }
 
 func quartilePoints(buckets [numBuckets]uint) (q1, q2, q3 uint) {
@@ -342,7 +342,7 @@ func hashCalculate(r FuzzyReader) (*Tlsh, error) {
 
 	biHash := bucketsBinaryRepresentation(buckets, q1, q2, q3)
 
-	return New(checksum, lValue(fileSize), q1Ratio, q2Ratio, qRatio, biHash), nil
+	return NewTlsh(checksum, lValue(fileSize), q1Ratio, q2Ratio, qRatio, biHash), nil
 }
 
 // FuzzyReader interface
@@ -378,34 +378,3 @@ func HashFilename(filename string) (tlsh *Tlsh, err error) {
 	return HashReader(r)
 }
 
-// Diff current hash with other hash
-func (t *Tlsh) Diff(t2 *Tlsh) int {
-	return diffTotal(t, t2, true)
-}
-
-// DiffFilenames calculate distance between two files
-func DiffFilenames(filenameA, filenameB string) (int, error) {
-	f, err := os.Open(filenameA)
-	defer f.Close()
-	if err != nil {
-		return -1, err
-	}
-	r := bufio.NewReader(f)
-	tlshA, err := hashCalculate(r)
-	if err != nil {
-		return -1, err
-	}
-
-	f, err = os.Open(filenameB)
-	defer f.Close()
-	if err != nil {
-		return -1, err
-	}
-	r = bufio.NewReader(f)
-	tlshB, err := hashCalculate(r)
-	if err != nil {
-		return -1, err
-	}
-
-	return tlshA.Diff(tlshB), nil
-}
