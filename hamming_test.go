@@ -21,7 +21,7 @@ import (
 	"github.com/larytet-go/sprintf"
 	"github.com/steakknife/hamming"
 
-	"github.com/glaslos/ssdeep"
+	"github.com/glaslos/tlsh"
 )
 
 func collectHashes(t *testing.T, nupackage string) (hashes []string) {
@@ -52,7 +52,7 @@ func collectHashes(t *testing.T, nupackage string) (hashes []string) {
 			continue
 		}
 
-		fuzzyHash, err := ssdeep.FuzzyBytes(data)
+		fuzzyHash, err := tlsh.HashBytes(data)
 		if err != nil {
 			t.Errorf("Fuzzy hasher for file %s in zip %s failed %v", f.Name, nupackage, err)
 			continue
