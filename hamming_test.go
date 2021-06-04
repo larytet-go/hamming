@@ -49,7 +49,7 @@ func TestNugets(t *testing.T) {
 				continue
 			}
 			rc.Close()
-			if len(data) < 2048 {
+			if len(data) < 4096 {
 				// t.Logf("File %s in zip %s is too short %v", f.Name, nupackage, len(data))
 				continue
 			}
