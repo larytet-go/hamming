@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"flag"
 	"io"
+	"ioutil"
 	"math/bits"
 	"math/rand"
 	"os"
@@ -29,7 +30,7 @@ import (
 func TestNugets(t *testing.T) {
 	nupackages, _ := filepath.Glob("./nuget/*.nupkg")
 	for _, nupackage := range nupackages {
-		r, err := zip.OpenReader(src)
+		r, err := zip.OpenReader(nupackage)
 		if err != nil {
 			t.Errorf("Open zip %s failed %v", nupackage, err)
 			continue
@@ -42,17 +43,17 @@ func TestNugets(t *testing.T) {
 				continue
 			}
 			rc.Close()
-			data, err = rc.ReadAll()
+			data, err := ioutil.ReadAll(rc)
 			if err != nil {
 				t.Errorf("Read from a file %s in the zip %s failed %v", nupackage, f.Name, err)
 				continue
 			}
-			err := fuzzyHasher.Update(string(data))
+			err = fuzzyHasher.Update(string(data))
 			if err != nil {
 				t.Errorf("Update of the fuzzy hasher for a file %s in the zip %s failed %v", nupackage, f.Name, err)
 				continue
 			}
-			if len(data)  512 {
+			if len(data) < 512 {
 				t.Logf("File %s in the zip %s is too short %v", nupackage, f.Name, len(data))
 				continue
 			}
