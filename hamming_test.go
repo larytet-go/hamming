@@ -20,23 +20,18 @@ import (
 	"github.com/larytet-go/sprintf"
 	"github.com/steakknife/hamming"
 
-	"github.com/dutchcoders/gossdeep"
+	"github.com/glaslos/ssdeep"
 )
 
 
-
+// Try this 
+// export CGO_LDFLAGS_ALLOW="^-[Il].*$"
 func TestNugets(t *testing.T) {
 	nupackages, _ := filepath.Glob("./nuget/*.nupkg")
 	for _, nupackage := range nupackages {
 		r, err := zip.OpenReader(src)
 		if err != nil {
 			t.Errorf("Open zip %s failed %v", nupackage, err)
-			continue
-		}
-
-		fuzzyHasher, err := ssdeep.New()			
-		if err != nil {
-			t.Errorf("Faied to create fuzzy hasher for the zip %s %v", nupackage, err)
 			continue
 		}
 
@@ -52,19 +47,23 @@ func TestNugets(t *testing.T) {
 				t.Errorf("Read from a file %s in the zip %s failed %v", nupackage, f.Name, err)
 				continue
 			}
-			err := fuzzyHasher.Update(string(data))			
+			err := fuzzyHasher.Update(string(data))
 			if err != nil {
 				t.Errorf("Update of the fuzzy hasher for a file %s in the zip %s failed %v", nupackage, f.Name, err)
 				continue
 			}
+			if len(data)  512 {
+				t.Logf("File %s in the zip %s is too short %v", nupackage, f.Name, len(data))
+				continue
+			}
+			fuzzyHash, err := ssdeep.FuzzyBytes(data)
+			if err != nil {
+				t.Errorf("Fuzzy hasher for a file %s in the zip %s failed %v", nupackage, f.Name, err)
+				continue
+			}
+			t.Logf("Fuzzy hass for file %s in the zip %s is too short %v", nupackage, f.Name, fuzzyHash)
 		}
 		r.Close()
-		fuzzyHash, err := fuzzyHasher.Digest()
-		if err != nil {
-			t.Errorf("Digest of the fuzzy hasher for the zip %s failed %v", nupackage, err)
-		}
-		t.Logf("File %s hash %s", nupackage, fuzzyHash)
-		fuzzyHasher.Free()
 	}
 }
 
