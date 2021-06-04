@@ -22,8 +22,9 @@ import (
 	"github.com/steakknife/hamming"
 )
 
-func collectHashes(t *testing.T, nupackage string) (hashes []FuzzyHash) {
+func collectHashes(t *testing.T, nupackage string) (hashes []FuzzyHash, filenames []string) {
 	hashes = []FuzzyHash{}
+	filenames = []string{}
 	r, err := zip.OpenReader(nupackage)
 	if err != nil {
 		t.Errorf("Open zip %s failed %v", nupackage, err)
@@ -61,6 +62,7 @@ func collectHashes(t *testing.T, nupackage string) (hashes []FuzzyHash) {
 			continue
 		}
 		hashes = append(hashes, fuzzyHash)
+		filenames = append(filenames, f.Name)
 	}
 	r.Close()
 	return
@@ -68,10 +70,10 @@ func collectHashes(t *testing.T, nupackage string) (hashes []FuzzyHash) {
 
 func TestNugets(t *testing.T) {
 	hashes := map[string][]FuzzyHash{}
+	filenames := map[string][]string{}
 	nupackages, _ := filepath.Glob("./nuget/*.nupkg")
 	for _, nupackage := range nupackages {
-		nupackageHashes := collectHashes(t, nupackage)
-		hashes[nupackage] = nupackageHashes
+		hashes[nupackage], filenames[nupackage] = collectHashes(t, nupackage)
 	}
 	for k1, v1 := range hashes {
 		for k2, v2 := range hashes {
@@ -85,7 +87,9 @@ func TestNugets(t *testing.T) {
 			}
 			for idx := 0;idx < l;idx++ {
 				d := distanceUint64s(v1[idx], v2[idx])
-				t.Logf("%s %s %v", k1, k2, d)
+				if d < 70 {
+					t.Logf("%s/%s %s/%s %v", k1, filenames[k1][idx], k2, filenames[k2][idx], d)					
+				}
 	
 			}
 		}
