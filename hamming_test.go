@@ -24,43 +24,49 @@ import (
 	"github.com/glaslos/ssdeep"
 )
 
+func collectHashes(t *testing.T, nupackage string) (hashes []string) {
+	hashes = []string{}
+	r, err := zip.OpenReader(nupackage)
+	if err != nil {
+		t.Errorf("Open zip %s failed %v", nupackage, err)
+		continue
+	}
 
-// Try this 
-// export CGO_LDFLAGS_ALLOW="^-[Il].*$"
-func TestNugets(t *testing.T) {
-	nupackages, _ := filepath.Glob("./nuget/*.nupkg")
-	for _, nupackage := range nupackages {
-		r, err := zip.OpenReader(nupackage)
+	for _, f := range r.File {
+		rc, err := f.Open()
 		if err != nil {
-			t.Errorf("Open zip %s failed %v", nupackage, err)
+			t.Errorf("Open file %s in ip %s failed %v", f.Name, nupackage, err)
 			continue
 		}
 
-		for _, f := range r.File {
-			rc, err := f.Open()
-			if err != nil {
-				t.Errorf("Open file %s in ip %s failed %v", f.Name, nupackage, err)
-				continue
-			}
-			data, err := ioutil.ReadAll(rc)
-			if err != nil {
-				t.Errorf("Read from file %s in zip %s failed %v", f.Name, nupackage, err)
-				rc.Close()
-				continue
-			}
+		data, err := ioutil.ReadAll(rc)
+		if err != nil {
+			t.Errorf("Read from file %s in zip %s failed %v", f.Name, nupackage, err)
 			rc.Close()
-			if len(data) < 4096 {
-				// t.Logf("File %s in zip %s is too short %v", f.Name, nupackage, len(data))
-				continue
-			}
-			fuzzyHash, err := ssdeep.FuzzyBytes(data)
-			if err != nil {
-				t.Errorf("Fuzzy hasher for file %s in zip %s failed %v", f.Name, nupackage, err)
-				continue
-			}
-			t.Logf("Fuzzy hash for file %s in zip %s %v", f.Name, nupackage, fuzzyHash)
+			continue
 		}
-		r.Close()
+		rc.Close()
+
+		if len(data) < 4096 {
+			// t.Logf("File %s in zip %s is too short %v", f.Name, nupackage, len(data))
+			continue
+		}
+
+		fuzzyHash, err := ssdeep.FuzzyBytes(data)
+		if err != nil {
+			t.Errorf("Fuzzy hasher for file %s in zip %s failed %v", f.Name, nupackage, err)
+			continue
+		}
+		t.Logf("Fuzzy hash for file %s in zip %s %v", f.Name, nupackage, fuzzyHash)
+	}
+	r.Close()
+	return
+}
+
+func TestNugets(t *testing.T) {
+	nupackages, _ := filepath.Glob("./nuget/*.nupkg")
+	for _, nupackage := range nupackages {
+		nupackageHashes := collectHashes(nupackage)
 	}
 }
 
