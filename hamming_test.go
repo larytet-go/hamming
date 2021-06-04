@@ -21,11 +21,11 @@ import (
 	"github.com/larytet-go/sprintf"
 	"github.com/steakknife/hamming"
 
-	"github.com/glaslos/tlsh"
+	"github.com/larytet-go/tlsh"
 )
 
-func collectHashes(t *testing.T, nupackage string) (hashes []*tlsh.Tlsh) {
-	hashes = []*tlsh.Tlsh{}
+func collectHashes(t *testing.T, nupackage string) (hashes [][]byte) {
+	hashes = [][]byte{}
 	r, err := zip.OpenReader(nupackage)
 	if err != nil {
 		t.Errorf("Open zip %s failed %v", nupackage, err)
@@ -57,7 +57,7 @@ func collectHashes(t *testing.T, nupackage string) (hashes []*tlsh.Tlsh) {
 			t.Errorf("Fuzzy hasher for file %s in zip %s failed %v", f.Name, nupackage, err)
 			continue
 		}
-		hashes = append(hashes, fuzzyHash)
+		hashes = append(hashes, fuzzyHash.Code)
 	}
 	r.Close()
 	return
