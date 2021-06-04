@@ -50,7 +50,7 @@ func TestNugets(t *testing.T) {
 			}
 			rc.Close()
 			if len(data) < 2048 {
-				// t.Logf("File %s in the zip %s is too short %v", f.Name, nupackage, len(data))
+				// t.Logf("File %s in zip %s is too short %v", f.Name, nupackage, len(data))
 				continue
 			}
 			fuzzyHash, err := ssdeep.FuzzyBytes(data)
